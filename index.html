@@ -136,9 +136,9 @@
             }
         }
 
-        function updateClouds() {
+        function updateClouds(deltaTime) {
             clouds.forEach(cloud => {
-                cloud.x -= cloud.speed;
+                cloud.x -= cloud.speed * 100 * deltaTime; // 100 pixels/s * vitesse
                 if (cloud.x + cloud.width < 0) {
                     const index = clouds.indexOf(cloud);
                     clouds.splice(index, 1);
@@ -168,8 +168,8 @@
         }
 
         // Draw the bird
-        function updateBird() {
-            bird.velocity += bird.gravity;
+        function updateBird(deltaTime) {
+            bird.velocity += bird.gravity * deltaTime;
             bird.y += bird.velocity;
 
             if (bird.y + bird.height / 2 > canvas.height || bird.y - bird.height / 2 < 0) {
@@ -178,10 +178,10 @@
         }
 
         // Update pipes and check for collisions
-        function updatePipes() {
+        function updatePipes(deltaTime) {
             for (let i = pipes.length - 1; i >= 0; i--) {
                 const pipe = pipes[i];
-                pipe.x -= 1.2;
+                pipe.x -= 120 * deltaTime; // 120 pixels par seconde
 
                 if (
                     bird.x + bird.width / 2 > pipe.x &&
@@ -238,20 +238,26 @@
         }
 
         // Game loop
-        function gameLoop() {
+        let lastTime = 0; // Temps du dernier cadre
+
+        function gameLoop(currentTime) {
             if (gameOver) return;
+
+            // Calculer le temps écoulé depuis le dernier cadre
+            const deltaTime = (currentTime - lastTime) / 1000; // Convertir en secondes
+            lastTime = currentTime;
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             createClouds();
-            updateClouds();
+            updateClouds(deltaTime);
             drawBackground();
             bird.draw();
             drawPipes();
             drawScore();
 
-            updateBird();
-            updatePipes();
+            updateBird(deltaTime);
+            updatePipes(deltaTime);
 
             frameCount++;
             requestAnimationFrame(gameLoop);
@@ -267,16 +273,9 @@
             bird.velocity = 0;
             gameOver = false;
 
-            if (document.documentElement.requestFullscreen) {
-                document.documentElement.requestFullscreen();
-            } else if (document.documentElement.webkitRequestFullscreen) {
-                document.documentElement.webkitRequestFullscreen(); // Safari
-            } else if (document.documentElement.msRequestFullscreen) {
-                document.documentElement.msRequestFullscreen(); // IE11
-            }
-
             backgroundMusic.play();  // Start playing music when the game starts
-            gameLoop();
+            lastTime = performance.now(); // Initialiser le temps de la boucle
+            requestAnimationFrame(gameLoop);
         }
 
         // Restart the game
