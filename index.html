@@ -12,7 +12,6 @@
         }
         canvas {
             display: block;
-            margin: auto;
         }
         #menu, #game-over {
             position: absolute;
@@ -66,91 +65,90 @@
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
 
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
 
         const backgroundMusic = document.getElementById("backgroundMusic");
         let bestScore = localStorage.getItem('bestScore') ? parseInt(localStorage.getItem('bestScore')) : 0;
         document.getElementById("bestScore").innerText = bestScore;
 
-        // Bird properties
         const bird = {
             x: 50,
-            y: 150,
+            y: canvas.height / 2,
             width: 40,
             height: 40,
-            gravity: 0.2,
-            lift: -5,
+            gravity: 0.4,
+            lift: -10,
             velocity: 0,
-            draw: function() {
+            draw: function () {
                 const birdImg = new Image();
                 birdImg.src = "kiki.png";
                 ctx.drawImage(birdImg, this.x - this.width / 2, this.y - this.height / 2, this.width, this.height);
-            }
+            },
         };
 
-        // Pipe properties
         const pipes = [];
-        const pipeWidth = 50;
-        const pipeGap = 200;
+        const pipeWidth = 80;
+        const pipeGap = canvas.height / 4; // Dynamic gap based on canvas height
         let frameCount = 0;
         let score = 0;
         let gameOver = false;
 
-        // Cloud properties
-        const clouds = [];
+        function createPipe() {
+            const topHeight = Math.random() * (canvas.height - pipeGap - 50) + 50;
+            const bottomHeight = canvas.height - topHeight - pipeGap;
 
-        // Set up the background
-        function drawBackground() {
-            ctx.fillStyle = "#70c5ce"; 
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            // Draw clouds with a more subtle texture
-            ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
-            clouds.forEach(cloud => {
-                ctx.beginPath();
-                ctx.arc(cloud.x, cloud.y, cloud.width / 2, Math.PI, 2 * Math.PI);
-                ctx.fill();
+            pipes.push({
+                x: canvas.width,
+                top: 0,
+                topHeight: topHeight,
+                bottom: topHeight + pipeGap,
+                bottomHeight: bottomHeight,
             });
         }
 
-        // Fullscreen function
-        function enterFullScreen() {
-            if (document.documentElement.requestFullscreen) {
-                document.documentElement.requestFullscreen();
-            } else if (document.documentElement.mozRequestFullScreen) { // Firefox
-                document.documentElement.mozRequestFullScreen();
-            } else if (document.documentElement.webkitRequestFullscreen) { // Chrome, Safari, Opera
-                document.documentElement.webkitRequestFullscreen();
-            } else if (document.documentElement.msRequestFullscreen) { // IE/Edge
-                document.documentElement.msRequestFullscreen();
-            }
+        function drawPipes() {
+            pipes.forEach((pipe) => {
+                ctx.fillStyle = "#00C853"; // Green color
+                ctx.fillRect(pipe.x, pipe.top, pipeWidth, pipe.topHeight);
+                ctx.fillRect(pipe.x, pipe.bottom, pipeWidth, pipe.bottomHeight);
+            });
         }
 
-        // Create clouds and update their positions
-        function createClouds() {
-            if (Math.random() < 0.03) {
-                clouds.push({
-                    x: canvas.width,
-                    y: Math.random() * (canvas.height / 3),
-                    width: 100 + Math.random() * 200,
-                    height: 40 + Math.random() * 60,
-                    speed: Math.random() * 0.5 + 0.3
-                });
-            }
-        }
+        function updatePipes() {
+            for (let i = pipes.length - 1; i >= 0; i--) {
+                const pipe = pipes[i];
+                pipe.x -= 2;
 
-        function updateClouds() {
-            clouds.forEach(cloud => {
-                cloud.x -= cloud.speed;
-                if (cloud.x + cloud.width < 0) {
-                    const index = clouds.indexOf(cloud);
-                    clouds.splice(index, 1);
+                if (pipe.x + pipeWidth < 0) {
+                    pipes.splice(i, 1);
+                    score++;
                 }
-            });
+
+                if (
+                    bird.x + bird.width / 2 > pipe.x &&
+                    bird.x - bird.width / 2 < pipe.x + pipeWidth &&
+                    (bird.y - bird.height / 2 < pipe.topHeight || bird.y + bird.height / 2 > pipe.bottom)
+                ) {
+                    endGame();
+                    return;
+                }
+            }
+
+            if (frameCount % 100 === 0) {
+                createPipe();
+            }
         }
 
-        // Draw the bird
+        function drawScore() {
+            ctx.font = "24px Arial";
+            ctx.fillStyle = "#000";
+            ctx.fillText(`Score: ${score}`, 10, 30);
+        }
+
         function updateBird() {
             bird.velocity += bird.gravity;
             bird.y += bird.velocity;
@@ -160,77 +158,57 @@
             }
         }
 
-        // Draw score
-        function drawScore() {
-            ctx.font = "24px Arial";
-            ctx.fillStyle = "#000";
-            ctx.fillText(`Score: ${score}`, 10, 30);
-        }
-
-        // Update the best score
-        function updateBestScore() {
-            if (score > bestScore) {
-                bestScore = score;
-                localStorage.setItem('bestScore', bestScore);
-                document.getElementById("bestScore").innerText = bestScore;
-            }
-        }
-
-        // End the game
         function endGame() {
-            updateBestScore();
             gameOver = true;
+            backgroundMusic.pause();
             document.getElementById("finalScore").innerText = `Score: ${score}`;
             document.getElementById("game-over").style.display = "flex";
-            backgroundMusic.pause();
         }
 
-        // Game loop
         function gameLoop() {
             if (gameOver) return;
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#70c5ce"; // Sky blue
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            createClouds();
-            updateClouds();
-            drawBackground();
             bird.draw();
-            drawScore();
-
             updateBird();
+
+            drawPipes();
+            updatePipes();
+
+            drawScore();
 
             frameCount++;
             requestAnimationFrame(gameLoop);
         }
 
-        // Start the game
         function startGame() {
-            enterFullScreen(); // Activate fullscreen when starting the game
-            document.getElementById("menu").style.display = "none";
             pipes.length = 0;
             score = 0;
             frameCount = 0;
-            bird.y = 150;
+            bird.y = canvas.height / 2;
             bird.velocity = 0;
             gameOver = false;
             backgroundMusic.play();
+            document.getElementById("menu").style.display = "none";
+            resizeCanvas();
+            createPipe();
             gameLoop();
         }
 
-        // Restart the game
         function restartGame() {
             document.getElementById("game-over").style.display = "none";
             startGame();
         }
 
-        // Bird controls
-        document.addEventListener("touchstart", () => {
-            if (!gameOver) bird.velocity = bird.lift;
+        window.addEventListener("resize", () => {
+            resizeCanvas();
         });
 
-        window.addEventListener("resize", () => {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+        document.addEventListener("keydown", (e) => {
+            if (e.code === "Space" && !gameOver) bird.velocity = bird.lift;
         });
     </script>
 </body>
