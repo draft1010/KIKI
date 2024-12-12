@@ -200,7 +200,8 @@
                 }
             }
 
-            if (frameCount % (90 - canvas.width / 500) === 0) {  // Pipe generation interval dynamic
+            // Ensure new pipes are generated at regular intervals
+            if (frameCount % 60 === 0) {  // Generate pipes every 60 frames
                 const topHeight = Math.random() * (canvas.height - pipeGap - 100) + 50;
                 const bottomHeight = canvas.height - topHeight - pipeGap;
 
