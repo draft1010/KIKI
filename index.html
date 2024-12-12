@@ -57,6 +57,7 @@
         <button onclick="restartGame()">Restart</button>
     </div>
     
+    <!-- Audio Element -->
     <audio id="backgroundMusic" loop>
         <source src="FB.mp3" type="audio/mp3">
         Votre navigateur ne prend pas en charge l'élément audio.
@@ -66,21 +67,17 @@
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
 
-        // Set canvas size to fit the screen
-        const setCanvasSize = () => {
-            const scale = window.devicePixelRatio;
-            canvas.width = window.innerWidth * scale;
-            canvas.height = window.innerHeight * scale;
-            ctx.scale(scale, scale);
-        };
+        canvas.width = 480;
+        canvas.height = 640;
 
-        setCanvasSize();
-        window.addEventListener("resize", setCanvasSize);
-
+        // Audio control
         const backgroundMusic = document.getElementById("backgroundMusic");
+
+        // Initialize best score from localStorage
         let bestScore = localStorage.getItem('bestScore') ? parseInt(localStorage.getItem('bestScore')) : 0;
         document.getElementById("bestScore").innerText = bestScore;
 
+        // Bird properties
         const bird = {
             x: 50,
             y: 150,
@@ -96,20 +93,24 @@
             }
         };
 
+        // Pipe properties
         const pipes = [];
         const pipeWidth = 50;
         const pipeGap = 200;
-        const clouds = [];
         let frameCount = 0;
         let score = 0;
         let gameOver = false;
-        let lastTime = 0;
 
+        // Cloud properties
+        const clouds = [];
+
+        // Set up the background
         function drawBackground() {
             ctx.fillStyle = "#70c5ce"; 
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
+            // Draw clouds with a more subtle texture
+            ctx.fillStyle = "rgba(255, 255, 255, 0.6)";  // Add transparency to clouds
             clouds.forEach(cloud => {
                 ctx.beginPath();
                 ctx.arc(cloud.x, cloud.y, cloud.width / 2, Math.PI, 2 * Math.PI);
@@ -117,6 +118,7 @@
             });
         }
 
+        // Create clouds and update their positions
         function createClouds() {
             if (Math.random() < 0.03) {
                 clouds.push({
@@ -129,9 +131,9 @@
             }
         }
 
-        function updateClouds(deltaTime) {
+        function updateClouds() {
             clouds.forEach(cloud => {
-                cloud.x -= cloud.speed * deltaTime / 16;
+                cloud.x -= cloud.speed;
                 if (cloud.x + cloud.width < 0) {
                     const index = clouds.indexOf(cloud);
                     clouds.splice(index, 1);
@@ -139,6 +141,7 @@
             });
         }
 
+        // Draw 3D yellow pipes
         function drawPipes() {
             pipes.forEach(pipe => {
                 const gradientTop = ctx.createLinearGradient(pipe.x, 0, pipe.x + pipeWidth, 0);
@@ -159,8 +162,9 @@
             });
         }
 
-        function updateBird(deltaTime) {
-            bird.velocity += bird.gravity * deltaTime / 16;
+        // Draw the bird
+        function updateBird() {
+            bird.velocity += bird.gravity;
             bird.y += bird.velocity;
 
             if (bird.y + bird.height / 2 > canvas.height || bird.y - bird.height / 2 < 0) {
@@ -168,12 +172,11 @@
             }
         }
 
-        function updatePipes(deltaTime) {
-            const speed = 2 * deltaTime / 16;
-
+        // Update pipes and check for collisions
+        function updatePipes() {
             for (let i = pipes.length - 1; i >= 0; i--) {
                 const pipe = pipes[i];
-                pipe.x -= speed;
+                pipe.x -= 2;
 
                 if (
                     bird.x + bird.width / 2 > pipe.x &&
@@ -204,12 +207,14 @@
             }
         }
 
+        // Draw score
         function drawScore() {
             ctx.font = "24px Arial";
             ctx.fillStyle = "#000";
             ctx.fillText(`Score: ${score}`, 10, 30);
         }
 
+        // Update the best score
         function updateBestScore() {
             if (score > bestScore) {
                 bestScore = score;
@@ -218,36 +223,36 @@
             }
         }
 
+        // End the game
         function endGame() {
             updateBestScore();
             gameOver = true;
             document.getElementById("finalScore").innerText = `Score: ${score}`;
             document.getElementById("game-over").style.display = "flex";
-            backgroundMusic.pause();
+            backgroundMusic.pause();  // Pause the music when the game ends
         }
 
-        function gameLoop(timestamp) {
+        // Game loop
+        function gameLoop() {
             if (gameOver) return;
-
-            const deltaTime = timestamp - lastTime;
-            lastTime = timestamp;
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             createClouds();
-            updateClouds(deltaTime);
+            updateClouds();
             drawBackground();
             bird.draw();
             drawPipes();
             drawScore();
 
-            updateBird(deltaTime);
-            updatePipes(deltaTime);
+            updateBird();
+            updatePipes();
 
             frameCount++;
             requestAnimationFrame(gameLoop);
         }
 
+        // Start the game
         function startGame() {
             document.getElementById("menu").style.display = "none";
             pipes.length = 0;
@@ -256,16 +261,17 @@
             bird.y = 150;
             bird.velocity = 0;
             gameOver = false;
-            backgroundMusic.play();
-            lastTime = performance.now();
-            gameLoop(lastTime);
+            backgroundMusic.play();  // Start playing music when the game starts
+            gameLoop();
         }
 
+        // Restart the game
         function restartGame() {
             document.getElementById("game-over").style.display = "none";
             startGame();
         }
 
+        // Bird controls
         document.addEventListener("touchstart", () => {
             if (!gameOver) bird.velocity = bird.lift;
         });
