@@ -101,7 +101,7 @@
         // Pipe properties
         const pipes = [];
         const pipeWidth = 50;
-        const pipeGap = 250;  // Increased gap between pipes for better playability
+        const pipeGap = 200;
         let frameCount = 0;
         let score = 0;
         let gameOver = false;
@@ -179,11 +179,9 @@
 
         // Update pipes and check for collisions
         function updatePipes() {
-            const pipeSpeed = Math.max(2, canvas.width / 400);  // Dynamic pipe speed based on screen width
-
             for (let i = pipes.length - 1; i >= 0; i--) {
                 const pipe = pipes[i];
-                pipe.x -= pipeSpeed;
+                pipe.x -= 2;
 
                 if (
                     bird.x + bird.width / 2 > pipe.x &&
@@ -200,8 +198,7 @@
                 }
             }
 
-            // Ensure new pipes are generated at regular intervals
-            if (frameCount % 80 === 0) {  // Generate pipes every 80 frames
+            if (frameCount % 90 === 0) {
                 const topHeight = Math.random() * (canvas.height - pipeGap - 100) + 50;
                 const bottomHeight = canvas.height - topHeight - pipeGap;
 
