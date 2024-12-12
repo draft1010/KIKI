@@ -184,9 +184,9 @@
                 pipe.x -= 2;
 
                 if (
-                    bird.x + bird.width / 2 > pipe.x &&
-                    bird.x - bird.width / 2 < pipe.x + pipeWidth &&
-                    (bird.y - bird.height / 2 < pipe.topHeight || bird.y + bird.height / 2 > pipe.bottom)
+                    bird.x + bird.width / 0.5 > pipe.x &&
+                    bird.x - bird.width / 0.5 < pipe.x + pipeWidth &&
+                    (bird.y - bird.height / 0.5 < pipe.topHeight || bird.y + bird.height / 2 > pipe.bottom)
                 ) {
                     endGame();
                     return;
