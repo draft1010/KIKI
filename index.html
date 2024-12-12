@@ -101,7 +101,7 @@
         // Pipe properties
         const pipes = [];
         const pipeWidth = 50;
-        const pipeGap = 200;
+        const pipeGap = 250;  // Increased gap between pipes for better playability
         let frameCount = 0;
         let score = 0;
         let gameOver = false;
@@ -201,7 +201,7 @@
             }
 
             // Ensure new pipes are generated at regular intervals
-            if (frameCount % 60 === 0) {  // Generate pipes every 60 frames
+            if (frameCount % 80 === 0) {  // Generate pipes every 80 frames
                 const topHeight = Math.random() * (canvas.height - pipeGap - 100) + 50;
                 const bottomHeight = canvas.height - topHeight - pipeGap;
 
