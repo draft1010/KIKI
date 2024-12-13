@@ -56,9 +56,13 @@
         <button onclick="restartGame()">Restart</button>
     </div>
 
-    <!-- Audio Element -->
-    <audio id="backgroundMusic" loop>
+    <!-- Audio Elements -->
+    <audio id="backgroundMusicFB" loop>
         <source src="FB.mp3" type="audio/mp3">
+        Votre navigateur ne prend pas en charge l'élément audio.
+    </audio>
+    <audio id="backgroundMusicLOT" loop>
+        <source src="LOT.mp3" type="audio/mp3">
         Votre navigateur ne prend pas en charge l'élément audio.
     </audio>
 
@@ -91,7 +95,8 @@
         }
 
         // Audio control
-        const backgroundMusic = document.getElementById("backgroundMusic");
+        const backgroundMusicFB = document.getElementById("backgroundMusicFB");
+        const backgroundMusicLOT = document.getElementById("backgroundMusicLOT");
 
         // Initialize best score from localStorage
         let bestScore = localStorage.getItem('bestScore') ? parseInt(localStorage.getItem('bestScore')) : 0;
@@ -243,7 +248,8 @@
             gameOver = true;
             document.getElementById("finalScore").innerText = `Score: ${score}`;
             document.getElementById("game-over").style.display = "flex";
-            backgroundMusic.pause();
+            backgroundMusicFB.pause();
+            backgroundMusicLOT.pause();
         }
 
         let lastTime = 0;
@@ -280,7 +286,18 @@
             bird.velocity = 0;
             gameOver = false;
 
-            backgroundMusic.play();
+            // Play FB.mp3 first
+            backgroundMusicFB.play();
+
+            backgroundMusicFB.onended = () => {
+                backgroundMusicLOT.play();
+            };
+
+            // If LOT.mp3 ends, restart the cycle
+            backgroundMusicLOT.onended = () => {
+                backgroundMusicFB.play();
+            };
+
             lastTime = performance.now();
             requestAnimationFrame(gameLoop);
         }
