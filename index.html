@@ -57,11 +57,11 @@
     </div>
 
     <!-- Audio Elements -->
-    <audio id="backgroundMusic1">
+    <audio id="backgroundMusic" loop>
         <source src="FB.mp3" type="audio/mp3">
         Votre navigateur ne prend pas en charge l'élément audio.
     </audio>
-    <audio id="backgroundMusic2">
+    <audio id="lotMusic">
         <source src="LOT.mp3" type="audio/mp3">
         Votre navigateur ne prend pas en charge l'élément audio.
     </audio>
@@ -70,7 +70,6 @@
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
 
-        // Adjust canvas to full screen
         function resizeCanvas() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
@@ -79,51 +78,17 @@
         resizeCanvas();
         window.addEventListener("resize", resizeCanvas);
 
-        // Fullscreen function
-        function goFullscreen() {
-            const body = document.body;
+        const backgroundMusic = document.getElementById("backgroundMusic");
+        const lotMusic = document.getElementById("lotMusic");
 
-            if (body.requestFullscreen) {
-                body.requestFullscreen();
-            } else if (body.webkitRequestFullscreen) { // Safari
-                body.webkitRequestFullscreen();
-            } else if (body.mozRequestFullScreen) { // Firefox
-                body.mozRequestFullScreen();
-            } else if (body.msRequestFullscreen) { // IE/Edge
-                body.msRequestFullscreen();
-            }
-        }
-
-        // Audio controls
-        const backgroundMusic1 = document.getElementById("backgroundMusic1");
-        const backgroundMusic2 = document.getElementById("backgroundMusic2");
-
-        // Switch to the next music when the first ends
-        backgroundMusic1.addEventListener("ended", () => {
-            backgroundMusic2.play();
-        });
-        backgroundMusic2.addEventListener("ended", () => {
-            backgroundMusic1.play();
+        // Handle music transition
+        backgroundMusic.addEventListener("ended", () => {
+            lotMusic.play();
         });
 
-        function playMusic() {
-            backgroundMusic1.currentTime = 0;
-            backgroundMusic2.currentTime = 0;
-            backgroundMusic1.play();
-        }
-
-        function stopMusic() {
-            backgroundMusic1.pause();
-            backgroundMusic2.pause();
-            backgroundMusic1.currentTime = 0;
-            backgroundMusic2.currentTime = 0;
-        }
-
-        // Initialize best score from localStorage
         let bestScore = localStorage.getItem('bestScore') ? parseInt(localStorage.getItem('bestScore')) : 0;
         document.getElementById("bestScore").innerText = bestScore;
 
-        // Bird properties
         const bird = {
             x: 50,
             y: 50,
@@ -139,7 +104,6 @@
             }
         };
 
-        // Pipe properties
         const pipes = [];
         const pipeWidth = 50;
         const pipeGap = 200;
@@ -147,7 +111,6 @@
         let score = 0;
         let gameOver = false;
 
-        // Set up the background
         function drawBackground() {
             ctx.fillStyle = "#70c5ce";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -162,10 +125,13 @@
             }
         }
 
-        function drawScore() {
-            ctx.font = "24px Arial";
-            ctx.fillStyle = "#000";
-            ctx.fillText(`Score: ${score}`, 10, 30);
+        function endGame() {
+            updateBestScore();
+            gameOver = true;
+            document.getElementById("finalScore").innerText = `Score: ${score}`;
+            document.getElementById("game-over").style.display = "flex";
+            backgroundMusic.pause();
+            lotMusic.pause();
         }
 
         function updateBestScore() {
@@ -176,12 +142,27 @@
             }
         }
 
-        function endGame() {
-            updateBestScore();
-            gameOver = true;
-            document.getElementById("finalScore").innerText = `Score: ${score}`;
-            document.getElementById("game-over").style.display = "flex";
-            stopMusic();
+        function startGame() {
+            document.getElementById("menu").style.display = "none";
+            pipes.length = 0;
+            score = 0;
+            frameCount = 0;
+            bird.y = 150;
+            bird.velocity = 0;
+            gameOver = false;
+
+            backgroundMusic.currentTime = 0;
+            backgroundMusic.play();
+            lotMusic.pause();
+            lotMusic.currentTime = 0;
+
+            lastTime = performance.now();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function restartGame() {
+            document.getElementById("game-over").style.display = "none";
+            startGame();
         }
 
         let lastTime = 0;
@@ -193,35 +174,12 @@
             lastTime = currentTime;
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-
             drawBackground();
             bird.draw();
-            drawScore();
-
             updateBird(deltaTime);
 
             frameCount++;
             requestAnimationFrame(gameLoop);
-        }
-
-        function startGame() {
-            goFullscreen();
-            document.getElementById("menu").style.display = "none";
-            pipes.length = 0;
-            score = 0;
-            frameCount = 0;
-            bird.y = 150;
-            bird.velocity = 0;
-            gameOver = false;
-
-            playMusic();
-            lastTime = performance.now();
-            requestAnimationFrame(gameLoop);
-        }
-
-        function restartGame() {
-            document.getElementById("game-over").style.display = "none";
-            startGame();
         }
 
         document.addEventListener("touchstart", () => {
