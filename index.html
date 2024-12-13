@@ -88,8 +88,8 @@
             y: 50,
             width: 50,
             height: 50,
-            gravity: 15,
-            lift: -5,
+            gravity: 15, // Ajustement pour une chute plus réaliste
+            lift: -5,     // Ajustement pour un saut équilibré
             velocity: 0,
             draw: function() {
                 const birdImg = new Image();
@@ -114,7 +114,8 @@
             ctx.fillStyle = "#70c5ce"; 
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            ctx.fillStyle = "rgba(255, 255, 255, 0.6)"; // Add transparency to clouds
+            // Draw clouds with a more subtle texture
+            ctx.fillStyle = "rgba(255, 255, 255, 0.6)";  // Add transparency to clouds
             clouds.forEach(cloud => {
                 ctx.beginPath();
                 ctx.arc(cloud.x, cloud.y, cloud.width / 2, Math.PI, 2 * Math.PI);
@@ -122,6 +123,7 @@
             });
         }
 
+        // Create clouds and update their positions
         function createClouds() {
             if (Math.random() < 0.03) {
                 clouds.push({
@@ -136,7 +138,7 @@
 
         function updateClouds(deltaTime) {
             clouds.forEach(cloud => {
-                cloud.x -= cloud.speed * 100 * deltaTime; // Move clouds
+                cloud.x -= cloud.speed * 100 * deltaTime; // 100 pixels/s * vitesse
                 if (cloud.x + cloud.width < 0) {
                     const index = clouds.indexOf(cloud);
                     clouds.splice(index, 1);
@@ -144,6 +146,7 @@
             });
         }
 
+        // Draw 3D yellow pipes
         function drawPipes() {
             pipes.forEach(pipe => {
                 const gradientTop = ctx.createLinearGradient(pipe.x, 0, pipe.x + pipeWidth, 0);
@@ -164,6 +167,7 @@
             });
         }
 
+        // Draw the bird
         function updateBird(deltaTime) {
             bird.velocity += bird.gravity * deltaTime;
             bird.y += bird.velocity;
@@ -173,27 +177,17 @@
             }
         }
 
-        function checkCollision(pipe) {
-            const birdRadius = bird.width / 2;
-            const safetyMargin = 5;
-
-            if (bird.x + birdRadius > pipe.x && bird.x - birdRadius < pipe.x + pipeWidth) {
-                const birdTop = bird.y - birdRadius;
-                const birdBottom = bird.y + birdRadius;
-
-                if (birdTop < pipe.topHeight - safetyMargin || birdBottom > pipe.bottom + safetyMargin) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
+        // Update pipes and check for collisions
         function updatePipes(deltaTime) {
             for (let i = pipes.length - 1; i >= 0; i--) {
                 const pipe = pipes[i];
-                pipe.x -= 120 * deltaTime;
+                pipe.x -= 120 * deltaTime; // 120 pixels par seconde
 
-                if (checkCollision(pipe)) {
+                if (
+                    bird.x + bird.width / 2 > pipe.x &&
+                    bird.x - bird.width / 2 < pipe.x + pipeWidth &&
+                    (bird.y - bird.height / 2 < pipe.topHeight || bird.y + bird.height / 2 > pipe.bottom)
+                ) {
                     endGame();
                     return;
                 }
@@ -218,25 +212,14 @@
             }
         }
 
+        // Draw score
         function drawScore() {
             ctx.font = "24px Arial";
             ctx.fillStyle = "#000";
             ctx.fillText(`Score: ${score}`, 10, 30);
         }
 
-        function drawDebug() {
-            ctx.strokeStyle = "red";
-            ctx.beginPath();
-            ctx.arc(bird.x, bird.y, bird.width / 2, 0, Math.PI * 2);
-            ctx.stroke();
-
-            pipes.forEach(pipe => {
-                ctx.strokeStyle = "blue";
-                ctx.strokeRect(pipe.x, pipe.top, pipeWidth, pipe.topHeight);
-                ctx.strokeRect(pipe.x, pipe.bottom, pipeWidth, pipe.bottomHeight);
-            });
-        }
-
+        // Update the best score
         function updateBestScore() {
             if (score > bestScore) {
                 bestScore = score;
@@ -245,20 +228,23 @@
             }
         }
 
+        // End the game
         function endGame() {
             updateBestScore();
             gameOver = true;
             document.getElementById("finalScore").innerText = `Score: ${score}`;
             document.getElementById("game-over").style.display = "flex";
-            backgroundMusic.pause();
+            backgroundMusic.pause();  // Pause the music when the game ends
         }
 
-        let lastTime = 0;
+        // Game loop
+        let lastTime = 0; // Temps du dernier cadre
 
         function gameLoop(currentTime) {
             if (gameOver) return;
 
-            const deltaTime = (currentTime - lastTime) / 1000;
+            // Calculer le temps écoulé depuis le dernier cadre
+            const deltaTime = (currentTime - lastTime) / 1000; // Convertir en secondes
             lastTime = currentTime;
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -273,13 +259,11 @@
             updateBird(deltaTime);
             updatePipes(deltaTime);
 
-            // Uncomment for debugging:
-            // drawDebug();
-
             frameCount++;
             requestAnimationFrame(gameLoop);
         }
 
+        // Start the game
         function startGame() {
             document.getElementById("menu").style.display = "none";
             pipes.length = 0;
@@ -289,16 +273,18 @@
             bird.velocity = 0;
             gameOver = false;
 
-            backgroundMusic.play();
-            lastTime = performance.now();
+            backgroundMusic.play();  // Start playing music when the game starts
+            lastTime = performance.now(); // Initialiser le temps de la boucle
             requestAnimationFrame(gameLoop);
         }
 
+        // Restart the game
         function restartGame() {
             document.getElementById("game-over").style.display = "none";
             startGame();
         }
 
+        // Bird controls
         document.addEventListener("touchstart", () => {
             if (!gameOver) bird.velocity = bird.lift;
         });
