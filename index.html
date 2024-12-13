@@ -111,12 +111,12 @@
         let bestScore = localStorage.getItem('bestScore') ? parseInt(localStorage.getItem('bestScore')) : 0;
         document.getElementById("bestScore").innerText = bestScore;
 
-        // Bird properties
+        // Bird properties (reduced size for distant view)
         const bird = {
             x: 50,
-            y: 50,
-            width: 50,
-            height: 50,
+            y: 150,
+            width: 30, // Reduced size of the bird
+            height: 30, // Reduced size of the bird
             gravity: 15,
             lift: -4,
             velocity: 0,
@@ -127,10 +127,10 @@
             }
         };
 
-        // Pipe properties
+        // Pipe properties (smaller pipes for distant view)
         const pipes = [];
-        const pipeWidth = 50;
-        const pipeGap = 200;
+        const pipeWidth = 40; // Reduced pipe width
+        const pipeGap = 250; // Adjust gap for better view
         let frameCount = 0;
         let score = 0;
         let gameOver = false;
@@ -207,7 +207,7 @@
         function updatePipes(deltaTime) {
             for (let i = pipes.length - 1; i >= 0; i--) {
                 const pipe = pipes[i];
-                pipe.x -= 120 * deltaTime;
+                pipe.x -= 120 * deltaTime; // Maintain pipe speed
 
                 if (
                     bird.x + bird.width / 2 > pipe.x &&
