@@ -98,6 +98,15 @@
         const backgroundMusicFB = document.getElementById("backgroundMusicFB");
         const backgroundMusicLOT = document.getElementById("backgroundMusicLOT");
 
+        // Fonction de gestion de la fin de musique
+        backgroundMusicFB.onended = () => {
+            backgroundMusicLOT.play();
+        };
+
+        backgroundMusicLOT.onended = () => {
+            backgroundMusicFB.play();
+        };
+
         // Initialize best score from localStorage
         let bestScore = localStorage.getItem('bestScore') ? parseInt(localStorage.getItem('bestScore')) : 0;
         document.getElementById("bestScore").innerText = bestScore;
@@ -286,17 +295,9 @@
             bird.velocity = 0;
             gameOver = false;
 
-            // Play FB.mp3 first
-            backgroundMusicFB.play();
-
-            backgroundMusicFB.onended = () => {
-                backgroundMusicLOT.play();
-            };
-
-            // If LOT.mp3 ends, restart the cycle
-            backgroundMusicLOT.onended = () => {
-                backgroundMusicFB.play();
-            };
+            // Redémarrer la musique
+            backgroundMusicFB.currentTime = 0; // Remet la musique à 0 pour un redémarrage propre
+            backgroundMusicFB.play(); // Joue FB.mp3
 
             lastTime = performance.now();
             requestAnimationFrame(gameLoop);
