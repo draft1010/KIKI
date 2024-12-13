@@ -13,7 +13,7 @@
         canvas {
             display: block;
         }
-        #menu, #game-over {
+        #menu, #game-over, #avatar-selection {
             position: absolute;
             top: 0;
             left: 0;
@@ -41,36 +41,49 @@
         button:hover {
             background: #45a049;
         }
+        img {
+            cursor: pointer;
+            width: 100px;
+            margin: 10px;
+            border: 2px solid transparent;
+        }
+        img:hover {
+            border: 2px solid white;
+        }
     </style>
 </head>
 <body>
     <canvas id="gameCanvas"></canvas>
+
+    <!-- Menu Principal -->
     <div id="menu">
         <h1>KikiBird</h1>
         <p>Best Score: <span id="bestScore">0</span></p>
-        <button onclick="startGame()">Start</button>
+        <button onclick="showAvatarSelection()">Start</button>
     </div>
+
+    <!-- Menu de Sélection d'Avatar -->
+    <div id="avatar-selection" style="display: none;">
+        <h2>Choose Your Bird</h2>
+        <div>
+            <img src="kiki.png" alt="Kiki Bird" onclick="selectAvatar('kiki.png')">
+            <img src="bobybird.png" alt="Boby Bird" onclick="selectAvatar('bobybird.png')">
+        </div>
+        <button onclick="confirmAvatar()">Confirm</button>
+    </div>
+
+    <!-- Écran de fin de partie -->
     <div id="game-over" style="display: none;">
         <h1>Game Over</h1>
         <p id="finalScore"></p>
         <button onclick="restartGame()">Restart</button>
     </div>
 
-    <!-- Audio Elements -->
-    <audio id="backgroundMusicFB" loop>
-        <source src="FB.mp3" type="audio/mp3">
-        Votre navigateur ne prend pas en charge l'élément audio.
-    </audio>
-    <audio id="backgroundMusicLOT" loop>
-        <source src="LOT.mp3" type="audio/mp3">
-        Votre navigateur ne prend pas en charge l'élément audio.
-    </audio>
-
     <script>
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
 
-        // Adjust canvas to full screen
+        // Ajustement de la taille du canvas
         function resizeCanvas() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
@@ -79,135 +92,78 @@
         resizeCanvas();
         window.addEventListener("resize", resizeCanvas);
 
-        // Fullscreen function
-        function goFullscreen() {
-            const body = document.body;
-
-            if (body.requestFullscreen) {
-                body.requestFullscreen();
-            } else if (body.webkitRequestFullscreen) { // Safari
-                body.webkitRequestFullscreen();
-            } else if (body.mozRequestFullScreen) { // Firefox
-                body.mozRequestFullScreen();
-            } else if (body.msRequestFullscreen) { // IE/Edge
-                body.msRequestFullscreen();
-            }
-        }
-
-        // Audio control
-        const backgroundMusicFB = document.getElementById("backgroundMusicFB");
-        const backgroundMusicLOT = document.getElementById("backgroundMusicLOT");
-
-        // Fonction de gestion de la fin de musique
-        backgroundMusicFB.onended = () => {
-            backgroundMusicLOT.play();
-        };
-
-        backgroundMusicLOT.onended = () => {
-            backgroundMusicFB.play();
-        };
-
-        // Initialize best score from localStorage
+        // Variables globales
+        let selectedAvatar = "kiki.png"; // Avatar par défaut
         let bestScore = localStorage.getItem('bestScore') ? parseInt(localStorage.getItem('bestScore')) : 0;
         document.getElementById("bestScore").innerText = bestScore;
 
-        // Bird properties (reduced size for distant view)
         const bird = {
             x: 50,
             y: 150,
-            width: 35, // Reduced size of the bird
-            height: 35, // Reduced size of the bird
+            width: 35,
+            height: 35,
             gravity: 15,
             lift: -4,
             velocity: 0,
             draw: function() {
                 const birdImg = new Image();
-                birdImg.src = "kiki.png";
+                birdImg.src = selectedAvatar;
                 ctx.drawImage(birdImg, this.x - this.width / 2, this.y - this.height / 2, this.width, this.height);
             }
         };
 
-        // Pipe properties (smaller pipes for distant view)
         const pipes = [];
-        const pipeWidth = 40; // Reduced pipe width
-        const pipeGap = 160; // Adjust gap for better view
+        const pipeWidth = 40;
+        const pipeGap = 160;
         let frameCount = 0;
         let score = 0;
         let gameOver = false;
 
-        // Cloud properties
-        const clouds = [];
-
-        // Set up the background
-        function drawBackground() {
-            ctx.fillStyle = "#70c5ce"; 
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
-            clouds.forEach(cloud => {
-                ctx.beginPath();
-                ctx.arc(cloud.x, cloud.y, cloud.width / 2, Math.PI, 2 * Math.PI);
-                ctx.fill();
-            });
+        function showAvatarSelection() {
+            document.getElementById("menu").style.display = "none";
+            document.getElementById("avatar-selection").style.display = "flex";
         }
 
-        // Create clouds and update their positions
-        function createClouds() {
-            if (Math.random() < 0.02) {
-                clouds.push({
-                    x: canvas.width,
-                    y: Math.random() * (canvas.height / 3),
-                    width: 100 + Math.random() * 200,
-                    height: 40 + Math.random() * 60,
-                    speed: Math.random() * 0.5 + 0.3
-                });
-            }
+        function selectAvatar(avatar) {
+            selectedAvatar = avatar;
+            alert(`You selected ${avatar}`);
         }
 
-        function updateClouds(deltaTime) {
-            clouds.forEach(cloud => {
-                cloud.x -= cloud.speed * 100 * deltaTime;
-                if (cloud.x + cloud.width < 0) {
-                    const index = clouds.indexOf(cloud);
-                    clouds.splice(index, 1);
-                }
-            });
+        function confirmAvatar() {
+            document.getElementById("avatar-selection").style.display = "none";
+            startGame();
         }
 
-        // Draw pipes
+        function startGame() {
+            pipes.length = 0;
+            score = 0;
+            frameCount = 0;
+            bird.y = 150;
+            bird.velocity = 0;
+            gameOver = false;
+
+            document.getElementById("game-over").style.display = "none";
+            lastTime = performance.now();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function restartGame() {
+            document.getElementById("game-over").style.display = "none";
+            showAvatarSelection();
+        }
+
         function drawPipes() {
             pipes.forEach(pipe => {
-                const gradientTop = ctx.createLinearGradient(pipe.x, 0, pipe.x + pipeWidth, 0);
-                gradientTop.addColorStop(0, "#F7DC6F");
-                gradientTop.addColorStop(0.5, "#F39C12");
-                gradientTop.addColorStop(1, "#F7DC6F");
-
-                const gradientBottom = ctx.createLinearGradient(pipe.x, canvas.height, pipe.x + pipeWidth, canvas.height);
-                gradientBottom.addColorStop(0, "#F7DC6F");
-                gradientBottom.addColorStop(0.5, "#F39C12");
-                gradientBottom.addColorStop(1, "#F7DC6F");
-
-                ctx.fillStyle = gradientTop;
-                ctx.fillRect(pipe.x, pipe.top, pipeWidth, pipe.topHeight);
-
-                ctx.fillStyle = gradientBottom;
+                ctx.fillStyle = "#228B22";
+                ctx.fillRect(pipe.x, 0, pipeWidth, pipe.topHeight);
                 ctx.fillRect(pipe.x, pipe.bottom, pipeWidth, pipe.bottomHeight);
             });
-        }
-
-        function updateBird(deltaTime) {
-            bird.velocity += bird.gravity * deltaTime;
-            bird.y += bird.velocity;
-
-            if (bird.y + bird.height / 2 > canvas.height || bird.y - bird.height / 2 < 0) {
-                endGame();
-            }
         }
 
         function updatePipes(deltaTime) {
             for (let i = pipes.length - 1; i >= 0; i--) {
                 const pipe = pipes[i];
-                pipe.x -= 120 * deltaTime; // Maintain pipe speed
+                pipe.x -= 120 * deltaTime;
 
                 if (
                     bird.x + bird.width / 2 > pipe.x &&
@@ -230,7 +186,6 @@
 
                 pipes.push({
                     x: canvas.width,
-                    top: 0,
                     topHeight: topHeight,
                     bottom: topHeight + pipeGap,
                     bottomHeight: bottomHeight
@@ -244,21 +199,15 @@
             ctx.fillText(`Score: ${score}`, 10, 30);
         }
 
-        function updateBestScore() {
+        function endGame() {
             if (score > bestScore) {
                 bestScore = score;
                 localStorage.setItem('bestScore', bestScore);
                 document.getElementById("bestScore").innerText = bestScore;
             }
-        }
-
-        function endGame() {
-            updateBestScore();
             gameOver = true;
             document.getElementById("finalScore").innerText = `Score: ${score}`;
             document.getElementById("game-over").style.display = "flex";
-            backgroundMusicFB.pause();
-            backgroundMusicLOT.pause();
         }
 
         let lastTime = 0;
@@ -270,46 +219,26 @@
             lastTime = currentTime;
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            createClouds();
-            updateClouds(deltaTime);
-            drawBackground();
             bird.draw();
             drawPipes();
             drawScore();
 
-            updateBird(deltaTime);
-            updatePipes(deltaTime);
+            bird.velocity += bird.gravity * deltaTime;
+            bird.y += bird.velocity;
 
+            if (bird.y + bird.height / 2 > canvas.height || bird.y - bird.height / 2 < 0) {
+                endGame();
+            }
+
+            updatePipes(deltaTime);
             frameCount++;
             requestAnimationFrame(gameLoop);
         }
 
-        function startGame() {
-            goFullscreen();
-            document.getElementById("menu").style.display = "none";
-            pipes.length = 0;
-            score = 0;
-            frameCount = 0;
-            bird.y = 150;
-            bird.velocity = 0;
-            gameOver = false;
-
-            // Redémarrer la musique
-            backgroundMusicFB.currentTime = 0; // Remet la musique à 0 pour un redémarrage propre
-            backgroundMusicFB.play(); // Joue FB.mp3
-
-            lastTime = performance.now();
-            requestAnimationFrame(gameLoop);
-        }
-
-        function restartGame() {
-            document.getElementById("game-over").style.display = "none";
-            startGame();
-        }
-
-        document.addEventListener("touchstart", () => {
-            if (!gameOver) bird.velocity = bird.lift;
+        document.addEventListener("keydown", (e) => {
+            if (e.code === "Space") {
+                bird.velocity = bird.lift;
+            }
         });
     </script>
 </body>
