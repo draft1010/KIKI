@@ -204,39 +204,44 @@
             }
         }
 
-        function updatePipes(deltaTime) {
-            for (let i = pipes.length - 1; i >= 0; i--) {
-                const pipe = pipes[i];
-                const pipeSpeed = canvas.width * 0.18; // Vitesse = 10% de la largeur d'écran par seconde
-pipe.x -= pipeSpeed * deltaTime;
+function updatePipes(deltaTime) {
+    // Parcourir tous les tuyaux existants pour les mettre à jour
+    for (let i = pipes.length - 1; i >= 0; i--) {
+        const pipe = pipes[i];
+        const pipeSpeed = canvas.width * 0.18; // Vitesse des tuyaux (18% de la largeur de l'écran par seconde)
+        pipe.x -= pipeSpeed * deltaTime;
 
-
-                if (
-                    bird.x + bird.width / 2 > pipe.x &&
-                    bird.x - bird.width / 2 < pipe.x + pipeWidth &&
-                    (bird.y - bird.height / 2 < pipe.topHeight || bird.y + bird.height / 2 > pipe.bottom)
-                ) {
-                    endGame();
-                    return;
-                }
-
-                if (pipe.x + pipeWidth < 0) {
-                    pipes.splice(i, 1);
-                    score++;
-                }
-            }
-
-if (frameCount % Math.floor(canvas.width * 0.5) === 0) {
-    const topHeight = Math.random() * (canvas.height - pipeGap - 100) + 50;
-    pipes.push({
-        x: canvas.width,
-        top: 0,
-        topHeight: topHeight,
-        bottom: topHeight + pipeGap,
-        bottomHeight: canvas.height - topHeight - pipeGap,
-                });
-            }
+        // Vérifier les collisions avec l'oiseau
+        if (
+            bird.x + bird.width / 2 > pipe.x &&
+            bird.x - bird.width / 2 < pipe.x + pipeWidth &&
+            (bird.y - bird.height / 2 < pipe.topHeight || bird.y + bird.height / 2 > pipe.bottom)
+        ) {
+            endGame();
+            return;
         }
+
+        // Supprimer les tuyaux qui sont hors de l'écran
+        if (pipe.x + pipeWidth < 0) {
+            pipes.splice(i, 1);
+            score++;
+        }
+    }
+
+    // Ajouter un nouveau tuyau si le dernier est assez éloigné
+    const pipeSpacing = canvas.width * 0.4; // Espacement horizontal entre les tuyaux (40% de la largeur de l'écran)
+    if (pipes.length === 0 || pipes[pipes.length - 1].x < canvas.width - pipeSpacing) {
+        const topHeight = Math.random() * (canvas.height - pipeGap - 100) + 50; // Hauteur aléatoire pour le tuyau supérieur
+        pipes.push({
+            x: canvas.width,
+            top: 0,
+            topHeight: topHeight,
+            bottom: topHeight + pipeGap,
+            bottomHeight: canvas.height - topHeight - pipeGap,
+        });
+    }
+}
+
 
         function drawScore() {
             ctx.font = "24px Arial";
