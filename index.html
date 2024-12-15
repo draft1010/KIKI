@@ -224,16 +224,14 @@
                 }
             }
 
-            if (frameCount % 230 === 0) {
-                const topHeight = Math.random() * (canvas.height - pipeGap - 100) + 50;
-                const bottomHeight = canvas.height - topHeight - pipeGap;
-
-                pipes.push({
-                    x: canvas.width,
-                    top: 0,
-                    topHeight: topHeight,
-                    bottom: topHeight + pipeGap,
-                    bottomHeight: bottomHeight
+if (frameCount % Math.floor(canvas.width * 0.5) === 0) {
+    const topHeight = Math.random() * (canvas.height - pipeGap - 100) + 50;
+    pipes.push({
+        x: canvas.width,
+        top: 0,
+        topHeight: topHeight,
+        bottom: topHeight + pipeGap,
+        bottomHeight: canvas.height - topHeight - pipeGap,
                 });
             }
         }
