@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -13,7 +13,7 @@
         canvas {
             display: block;
         }
-        #menu, #game-over {
+        #menu, #game-over, #character-select {
             position: absolute;
             top: 0;
             left: 0;
@@ -41,15 +41,8 @@
         button:hover {
             background: #45a049;
         }
-        .character-selection {
-            display: flex;
-            gap: 20px;
-        }
-        .character-selection img {
-            width: 100px;
-            height: 100px;
-            cursor: pointer;
-            border-radius: 10px;
+        #character-select button {
+            margin-top: 10px;
         }
     </style>
 </head>
@@ -58,12 +51,15 @@
     <div id="menu">
         <h1>KikiBird</h1>
         <p>Best Score: <span id="bestScore">0</span></p>
-        <div class="character-selection">
-            <img src="bobybird.png" alt="Boby Bird" onclick="selectCharacter('bobybird')">
-            <img src="kiki.png" alt="Kiki" onclick="selectCharacter('kiki')">
-        </div>
-        <button onclick="startGame()">Start</button>
+        <button onclick="showCharacterSelect()">Start</button>
     </div>
+
+    <div id="character-select" style="display: none;">
+        <h2>Select your character</h2>
+        <button onclick="selectCharacter('bobybird')">BobyBird</button>
+        <button onclick="selectCharacter('kiki')">Kiki</button>
+    </div>
+
     <div id="game-over" style="display: none;">
         <h1>Game Over</h1>
         <p id="finalScore"></p>
@@ -84,8 +80,6 @@
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
 
-        let selectedCharacter = 'kiki';  // Valeur par défaut : kiki
-
         // Adjust canvas to full screen
         function resizeCanvas() {
             canvas.width = window.innerWidth;
@@ -98,13 +92,14 @@
         // Fullscreen function
         function goFullscreen() {
             const body = document.body;
+
             if (body.requestFullscreen) {
                 body.requestFullscreen();
-            } else if (body.webkitRequestFullscreen) {
+            } else if (body.webkitRequestFullscreen) { // Safari
                 body.webkitRequestFullscreen();
-            } else if (body.mozRequestFullScreen) {
+            } else if (body.mozRequestFullScreen) { // Firefox
                 body.mozRequestFullScreen();
-            } else if (body.msRequestFullscreen) {
+            } else if (body.msRequestFullscreen) { // IE/Edge
                 body.msRequestFullscreen();
             }
         }
@@ -126,21 +121,8 @@
         let bestScore = localStorage.getItem('bestScore') ? parseInt(localStorage.getItem('bestScore')) : 0;
         document.getElementById("bestScore").innerText = bestScore;
 
-        // Bird properties (reduced size for distant view)
-        const bird = {
-            x: canvas.width * 0.1,
-            y: canvas.height * 0.3,
-            width: canvas.width * 0.08, // Reduced size of the bird
-            height: canvas.width * 0.08, // Reduced size of the bird
-            gravity: 15,
-            lift: -4,
-            velocity: 0,
-            draw: function() {
-                const birdImg = new Image();
-                birdImg.src = selectedCharacter === 'bobybird' ? "bobybird.png" : "kiki.png";  // Charge l'image du personnage sélectionné
-                ctx.drawImage(birdImg, this.x - this.width / 2, this.y - this.height / 2, this.width, this.height);
-            }
-        };
+        // Bird properties (initially empty, to be set after character selection)
+        let bird = {};
 
         // Pipe properties (smaller pipes for distant view)
         const pipes = [];
@@ -149,6 +131,9 @@
         let frameCount = 0;
         let score = 0;
         let gameOver = false;
+
+        // Cloud properties
+        const clouds = [];
 
         // Set up the background
         function drawBackground() {
@@ -257,7 +242,7 @@
         function drawScore() {
             ctx.font = "24px Arial";
             ctx.fillStyle = "#000";
-            ctx.fillText("Score: " + score, 10, 30);
+            ctx.fillText(`Score: ${score}`, 10, 30);
         }
 
         function updateBestScore() {
@@ -271,7 +256,7 @@
         function endGame() {
             updateBestScore();
             gameOver = true;
-            document.getElementById("finalScore").innerText = "Score: " + score;
+            document.getElementById("finalScore").innerText = `Score: ${score}`;
             document.getElementById("game-over").style.display = "flex";
             backgroundMusicFB.pause();
             backgroundMusicLOT.pause();
@@ -304,6 +289,7 @@
         function startGame() {
             goFullscreen();
             document.getElementById("menu").style.display = "none";
+            document.getElementById("character-select").style.display = "none";
             pipes.length = 0;
             score = 0;
             frameCount = 0;
@@ -324,8 +310,45 @@
             startGame();
         }
 
+        function showCharacterSelect() {
+            document.getElementById("menu").style.display = "none";
+            document.getElementById("character-select").style.display = "flex";
+        }
+
         function selectCharacter(character) {
-            selectedCharacter = character;  // Met à jour le personnage sélectionné
+            // Setup the selected character
+            if (character === 'bobybird') {
+                bird = {
+                    x: canvas.width * 0.1,
+                    y: canvas.height * 0.3,
+                    width: canvas.width * 0.08,
+                    height: canvas.width * 0.08,
+                    gravity: 15,
+                    lift: -4,
+                    velocity: 0,
+                    draw: function() {
+                        const birdImg = new Image();
+                        birdImg.src = "bobybird.png";
+                        ctx.drawImage(birdImg, this.x - this.width / 2, this.y - this.height / 2, this.width, this.height);
+                    }
+                };
+            } else if (character === 'kiki') {
+                bird = {
+                    x: canvas.width * 0.1,
+                    y: canvas.height * 0.3,
+                    width: canvas.width * 0.08,
+                    height: canvas.width * 0.08,
+                    gravity: 15,
+                    lift: -4,
+                    velocity: 0,
+                    draw: function() {
+                        const birdImg = new Image();
+                        birdImg.src = "kiki.png";
+                        ctx.drawImage(birdImg, this.x - this.width / 2, this.y - this.height / 2, this.width, this.height);
+                    }
+                };
+            }
+            startGame();
         }
 
         document.addEventListener("touchstart", () => {
