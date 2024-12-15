@@ -207,7 +207,9 @@
         function updatePipes(deltaTime) {
             for (let i = pipes.length - 1; i >= 0; i--) {
                 const pipe = pipes[i];
-                pipe.x -= 120 * deltaTime; // Maintain pipe speed
+                const pipeSpeed = canvas.width * 0.1; // Vitesse = 10% de la largeur d'écran par seconde
+pipe.x -= pipeSpeed * deltaTime;
+
 
                 if (
                     bird.x + bird.width / 2 > pipe.x &&
