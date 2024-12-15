@@ -41,6 +41,16 @@
         button:hover {
             background: #45a049;
         }
+        .character-selection {
+            display: flex;
+            gap: 20px;
+        }
+        .character-selection img {
+            width: 100px;
+            height: 100px;
+            cursor: pointer;
+            border-radius: 10px;
+        }
     </style>
 </head>
 <body>
@@ -48,6 +58,10 @@
     <div id="menu">
         <h1>KikiBird</h1>
         <p>Best Score: <span id="bestScore">0</span></p>
+        <div class="character-selection">
+            <img src="bobybird.png" alt="Boby Bird" onclick="selectCharacter('bobybird')">
+            <img src="kiki.png" alt="Kiki" onclick="selectCharacter('kiki')">
+        </div>
         <button onclick="startGame()">Start</button>
     </div>
     <div id="game-over" style="display: none;">
@@ -70,6 +84,8 @@
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
 
+        let selectedCharacter = 'kiki';  // Valeur par défaut : kiki
+
         // Adjust canvas to full screen
         function resizeCanvas() {
             canvas.width = window.innerWidth;
@@ -82,14 +98,13 @@
         // Fullscreen function
         function goFullscreen() {
             const body = document.body;
-
             if (body.requestFullscreen) {
                 body.requestFullscreen();
-            } else if (body.webkitRequestFullscreen) { // Safari
+            } else if (body.webkitRequestFullscreen) {
                 body.webkitRequestFullscreen();
-            } else if (body.mozRequestFullScreen) { // Firefox
+            } else if (body.mozRequestFullScreen) {
                 body.mozRequestFullScreen();
-            } else if (body.msRequestFullscreen) { // IE/Edge
+            } else if (body.msRequestFullscreen) {
                 body.msRequestFullscreen();
             }
         }
@@ -122,7 +137,7 @@
             velocity: 0,
             draw: function() {
                 const birdImg = new Image();
-                birdImg.src = "kiki.png";
+                birdImg.src = selectedCharacter === 'bobybird' ? "bobybird.png" : "kiki.png";  // Charge l'image du personnage sélectionné
                 ctx.drawImage(birdImg, this.x - this.width / 2, this.y - this.height / 2, this.width, this.height);
             }
         };
@@ -134,9 +149,6 @@
         let frameCount = 0;
         let score = 0;
         let gameOver = false;
-
-        // Cloud properties
-        const clouds = [];
 
         // Set up the background
         function drawBackground() {
@@ -204,49 +216,48 @@
             }
         }
 
-function updatePipes(deltaTime) {
-    // Parcourir tous les tuyaux existants pour les mettre à jour
-    for (let i = pipes.length - 1; i >= 0; i--) {
-        const pipe = pipes[i];
-        const pipeSpeed = canvas.width * 0.20; // Vitesse des tuyaux (20% de la largeur de l'écran par seconde)
-        pipe.x -= pipeSpeed * deltaTime;
+        function updatePipes(deltaTime) {
+            // Parcourir tous les tuyaux existants pour les mettre à jour
+            for (let i = pipes.length - 1; i >= 0; i--) {
+                const pipe = pipes[i];
+                const pipeSpeed = canvas.width * 0.20; // Vitesse des tuyaux (20% de la largeur de l'écran par seconde)
+                pipe.x -= pipeSpeed * deltaTime;
 
-        // Vérifier les collisions avec l'oiseau
-        if (
-            bird.x + bird.width / 2 > pipe.x &&
-            bird.x - bird.width / 2 < pipe.x + pipeWidth &&
-            (bird.y - bird.height / 2 < pipe.topHeight || bird.y + bird.height / 2 > pipe.bottom)
-        ) {
-            endGame();
-            return;
+                // Vérifier les collisions avec l'oiseau
+                if (
+                    bird.x + bird.width / 2 > pipe.x &&
+                    bird.x - bird.width / 2 < pipe.x + pipeWidth &&
+                    (bird.y - bird.height / 2 < pipe.topHeight || bird.y + bird.height / 2 > pipe.bottom)
+                ) {
+                    endGame();
+                    return;
+                }
+
+                // Supprimer les tuyaux qui sont hors de l'écran
+                if (pipe.x + pipeWidth < 0) {
+                    pipes.splice(i, 1);
+                    score++;
+                }
+            }
+
+            // Ajouter un nouveau tuyau si le dernier est assez éloigné
+            const pipeSpacing = canvas.width * 0.5; // Espacement horizontal entre les tuyaux (50% de la largeur de l'écran)
+            if (pipes.length === 0 || pipes[pipes.length - 1].x < canvas.width - pipeSpacing) {
+                const topHeight = Math.random() * (canvas.height - pipeGap - 100) + 50; // Hauteur aléatoire pour le tuyau supérieur
+                pipes.push({
+                    x: canvas.width,
+                    top: 0,
+                    topHeight: topHeight,
+                    bottom: topHeight + pipeGap,
+                    bottomHeight: canvas.height - topHeight - pipeGap,
+                });
+            }
         }
-
-        // Supprimer les tuyaux qui sont hors de l'écran
-        if (pipe.x + pipeWidth < 0) {
-            pipes.splice(i, 1);
-            score++;
-        }
-    }
-
-    // Ajouter un nouveau tuyau si le dernier est assez éloigné
-    const pipeSpacing = canvas.width * 0.5; // Espacement horizontal entre les tuyaux (50% de la largeur de l'écran)
-    if (pipes.length === 0 || pipes[pipes.length - 1].x < canvas.width - pipeSpacing) {
-        const topHeight = Math.random() * (canvas.height - pipeGap - 100) + 50; // Hauteur aléatoire pour le tuyau supérieur
-        pipes.push({
-            x: canvas.width,
-            top: 0,
-            topHeight: topHeight,
-            bottom: topHeight + pipeGap,
-            bottomHeight: canvas.height - topHeight - pipeGap,
-        });
-    }
-}
-
 
         function drawScore() {
             ctx.font = "24px Arial";
             ctx.fillStyle = "#000";
-            ctx.fillText(`Score: ${score}`, 10, 30);
+            ctx.fillText("Score: " + score, 10, 30);
         }
 
         function updateBestScore() {
@@ -260,7 +271,7 @@ function updatePipes(deltaTime) {
         function endGame() {
             updateBestScore();
             gameOver = true;
-            document.getElementById("finalScore").innerText = `Score: ${score}`;
+            document.getElementById("finalScore").innerText = "Score: " + score;
             document.getElementById("game-over").style.display = "flex";
             backgroundMusicFB.pause();
             backgroundMusicLOT.pause();
@@ -311,6 +322,10 @@ function updatePipes(deltaTime) {
         function restartGame() {
             document.getElementById("game-over").style.display = "none";
             startGame();
+        }
+
+        function selectCharacter(character) {
+            selectedCharacter = character;  // Met à jour le personnage sélectionné
         }
 
         document.addEventListener("touchstart", () => {
