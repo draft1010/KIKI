@@ -180,21 +180,26 @@ function drawPipes() {
         // Ajouter un contour noir pour les tuyaux
         ctx.lineWidth = 5; // Épaisseur du contour
         ctx.strokeStyle = "#000000"; // Contour noir
+
+        // Dessiner le tuyau supérieur
         ctx.beginPath();
         ctx.rect(pipe.x, pipe.top, pipeWidth, pipe.topHeight);
+        ctx.stroke();
+
+        // Dessiner le tuyau inférieur
+        ctx.beginPath();
         ctx.rect(pipe.x, pipe.bottom, pipeWidth, pipe.bottomHeight);
         ctx.stroke();
 
-        // Dégradé de couleurs vives pour les tuyaux
-        const gradientTop = ctx.createLinearGradient(pipe.x, 0, pipe.x + pipeWidth, 0);
-        gradientTop.addColorStop(0, "#ff7f50"); // Couleur orange clair
-        gradientTop.addColorStop(0.5, "#ff4500"); // Couleur rouge vif
-        gradientTop.addColorStop(1, "#ff7f50");
+        // Dégradé de couleurs pour le tuyau supérieur
+        const gradientTop = ctx.createLinearGradient(pipe.x, pipe.top, pipe.x + pipeWidth, pipe.top);
+        gradientTop.addColorStop(0, "#ff7f50");  // Couleur orange clair
+        gradientTop.addColorStop(1, "#ff4500");  // Couleur rouge vif
 
-        const gradientBottom = ctx.createLinearGradient(pipe.x, canvas.height, pipe.x + pipeWidth, canvas.height);
-        gradientBottom.addColorStop(0, "#ff7f50");
-        gradientBottom.addColorStop(0.5, "#ff4500");
-        gradientBottom.addColorStop(1, "#ff7f50");
+        // Dégradé de couleurs pour le tuyau inférieur
+        const gradientBottom = ctx.createLinearGradient(pipe.x, pipe.bottom, pipe.x + pipeWidth, pipe.bottom);
+        gradientBottom.addColorStop(0, "#ff7f50");  // Couleur orange clair
+        gradientBottom.addColorStop(1, "#ff4500");  // Couleur rouge vif
 
         // Remplir les tuyaux avec les dégradés
         ctx.fillStyle = gradientTop;
