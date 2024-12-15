@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -13,7 +13,7 @@
         canvas {
             display: block;
         }
-        #menu, #game-over, #character-select {
+        #menu, #game-over {
             position: absolute;
             top: 0;
             left: 0;
@@ -41,9 +41,6 @@
         button:hover {
             background: #45a049;
         }
-        #character-select button {
-            margin-top: 10px;
-        }
     </style>
 </head>
 <body>
@@ -51,15 +48,8 @@
     <div id="menu">
         <h1>KikiBird</h1>
         <p>Best Score: <span id="bestScore">0</span></p>
-        <button onclick="showCharacterSelect()">Start</button>
+        <button onclick="startGame()">Start</button>
     </div>
-
-    <div id="character-select" style="display: none;">
-        <h2>Select your character</h2>
-        <button onclick="selectCharacter('bobybird')">BobyBird</button>
-        <button onclick="selectCharacter('kiki')">Kiki</button>
-    </div>
-
     <div id="game-over" style="display: none;">
         <h1>Game Over</h1>
         <p id="finalScore"></p>
@@ -121,8 +111,21 @@
         let bestScore = localStorage.getItem('bestScore') ? parseInt(localStorage.getItem('bestScore')) : 0;
         document.getElementById("bestScore").innerText = bestScore;
 
-        // Bird properties (initially empty, to be set after character selection)
-        let bird = {};
+        // Bird properties (reduced size for distant view)
+        const bird = {
+            x: canvas.width * 0.1,
+            y: canvas.height * 0.3,
+            width: canvas.width * 0.08, // Reduced size of the bird
+            height: canvas.width * 0.08, // Reduced size of the bird
+            gravity: 15,
+            lift: -4,
+            velocity: 0,
+            draw: function() {
+                const birdImg = new Image();
+                birdImg.src = "kiki.png";
+                ctx.drawImage(birdImg, this.x - this.width / 2, this.y - this.height / 2, this.width, this.height);
+            }
+        };
 
         // Pipe properties (smaller pipes for distant view)
         const pipes = [];
@@ -201,43 +204,44 @@
             }
         }
 
-        function updatePipes(deltaTime) {
-            // Parcourir tous les tuyaux existants pour les mettre à jour
-            for (let i = pipes.length - 1; i >= 0; i--) {
-                const pipe = pipes[i];
-                const pipeSpeed = canvas.width * 0.20; // Vitesse des tuyaux (20% de la largeur de l'écran par seconde)
-                pipe.x -= pipeSpeed * deltaTime;
+function updatePipes(deltaTime) {
+    // Parcourir tous les tuyaux existants pour les mettre à jour
+    for (let i = pipes.length - 1; i >= 0; i--) {
+        const pipe = pipes[i];
+        const pipeSpeed = canvas.width * 0.20; // Vitesse des tuyaux (20% de la largeur de l'écran par seconde)
+        pipe.x -= pipeSpeed * deltaTime;
 
-                // Vérifier les collisions avec l'oiseau
-                if (
-                    bird.x + bird.width / 2 > pipe.x &&
-                    bird.x - bird.width / 2 < pipe.x + pipeWidth &&
-                    (bird.y - bird.height / 2 < pipe.topHeight || bird.y + bird.height / 2 > pipe.bottom)
-                ) {
-                    endGame();
-                    return;
-                }
-
-                // Supprimer les tuyaux qui sont hors de l'écran
-                if (pipe.x + pipeWidth < 0) {
-                    pipes.splice(i, 1);
-                    score++;
-                }
-            }
-
-            // Ajouter un nouveau tuyau si le dernier est assez éloigné
-            const pipeSpacing = canvas.width * 0.5; // Espacement horizontal entre les tuyaux (50% de la largeur de l'écran)
-            if (pipes.length === 0 || pipes[pipes.length - 1].x < canvas.width - pipeSpacing) {
-                const topHeight = Math.random() * (canvas.height - pipeGap - 100) + 50; // Hauteur aléatoire pour le tuyau supérieur
-                pipes.push({
-                    x: canvas.width,
-                    top: 0,
-                    topHeight: topHeight,
-                    bottom: topHeight + pipeGap,
-                    bottomHeight: canvas.height - topHeight - pipeGap,
-                });
-            }
+        // Vérifier les collisions avec l'oiseau
+        if (
+            bird.x + bird.width / 2 > pipe.x &&
+            bird.x - bird.width / 2 < pipe.x + pipeWidth &&
+            (bird.y - bird.height / 2 < pipe.topHeight || bird.y + bird.height / 2 > pipe.bottom)
+        ) {
+            endGame();
+            return;
         }
+
+        // Supprimer les tuyaux qui sont hors de l'écran
+        if (pipe.x + pipeWidth < 0) {
+            pipes.splice(i, 1);
+            score++;
+        }
+    }
+
+    // Ajouter un nouveau tuyau si le dernier est assez éloigné
+    const pipeSpacing = canvas.width * 0.5; // Espacement horizontal entre les tuyaux (50% de la largeur de l'écran)
+    if (pipes.length === 0 || pipes[pipes.length - 1].x < canvas.width - pipeSpacing) {
+        const topHeight = Math.random() * (canvas.height - pipeGap - 100) + 50; // Hauteur aléatoire pour le tuyau supérieur
+        pipes.push({
+            x: canvas.width,
+            top: 0,
+            topHeight: topHeight,
+            bottom: topHeight + pipeGap,
+            bottomHeight: canvas.height - topHeight - pipeGap,
+        });
+    }
+}
+
 
         function drawScore() {
             ctx.font = "24px Arial";
@@ -289,7 +293,6 @@
         function startGame() {
             goFullscreen();
             document.getElementById("menu").style.display = "none";
-            document.getElementById("character-select").style.display = "none";
             pipes.length = 0;
             score = 0;
             frameCount = 0;
@@ -307,47 +310,6 @@
 
         function restartGame() {
             document.getElementById("game-over").style.display = "none";
-            startGame();
-        }
-
-        function showCharacterSelect() {
-            document.getElementById("menu").style.display = "none";
-            document.getElementById("character-select").style.display = "flex";
-        }
-
-        function selectCharacter(character) {
-            // Setup the selected character
-            if (character === 'bobybird') {
-                bird = {
-                    x: canvas.width * 0.1,
-                    y: canvas.height * 0.3,
-                    width: canvas.width * 0.08,
-                    height: canvas.width * 0.08,
-                    gravity: 15,
-                    lift: -4,
-                    velocity: 0,
-                    draw: function() {
-                        const birdImg = new Image();
-                        birdImg.src = "bobybird.png";
-                        ctx.drawImage(birdImg, this.x - this.width / 2, this.y - this.height / 2, this.width, this.height);
-                    }
-                };
-            } else if (character === 'kiki') {
-                bird = {
-                    x: canvas.width * 0.1,
-                    y: canvas.height * 0.3,
-                    width: canvas.width * 0.08,
-                    height: canvas.width * 0.08,
-                    gravity: 15,
-                    lift: -4,
-                    velocity: 0,
-                    draw: function() {
-                        const birdImg = new Image();
-                        birdImg.src = "kiki.png";
-                        ctx.drawImage(birdImg, this.x - this.width / 2, this.y - this.height / 2, this.width, this.height);
-                    }
-                };
-            }
             startGame();
         }
 
