@@ -175,34 +175,35 @@
         }
 
         // Draw pipes
-        function drawPipes() {
-            pipes.forEach(pipe => {
-                const gradientTop = ctx.createLinearGradient(pipe.x, 0, pipe.x + pipeWidth, 0);
-                gradientTop.addColorStop(0, "#F7DC6F");
-                gradientTop.addColorStop(0.5, "#F39C12");
-                gradientTop.addColorStop(1, "#F7DC6F");
+function drawPipes() {
+    pipes.forEach(pipe => {
+        // Ajouter un contour noir pour les tuyaux
+        ctx.lineWidth = 5; // Épaisseur du contour
+        ctx.strokeStyle = "#000000"; // Contour noir
+        ctx.beginPath();
+        ctx.rect(pipe.x, pipe.top, pipeWidth, pipe.topHeight);
+        ctx.rect(pipe.x, pipe.bottom, pipeWidth, pipe.bottomHeight);
+        ctx.stroke();
 
-                const gradientBottom = ctx.createLinearGradient(pipe.x, canvas.height, pipe.x + pipeWidth, canvas.height);
-                gradientBottom.addColorStop(0, "#F7DC6F");
-                gradientBottom.addColorStop(0.5, "#F39C12");
-                gradientBottom.addColorStop(1, "#F7DC6F");
+        // Dégradé de couleurs vives pour les tuyaux
+        const gradientTop = ctx.createLinearGradient(pipe.x, 0, pipe.x + pipeWidth, 0);
+        gradientTop.addColorStop(0, "#ff7f50"); // Couleur orange clair
+        gradientTop.addColorStop(0.5, "#ff4500"); // Couleur rouge vif
+        gradientTop.addColorStop(1, "#ff7f50");
 
-                ctx.fillStyle = gradientTop;
-                ctx.fillRect(pipe.x, pipe.top, pipeWidth, pipe.topHeight);
+        const gradientBottom = ctx.createLinearGradient(pipe.x, canvas.height, pipe.x + pipeWidth, canvas.height);
+        gradientBottom.addColorStop(0, "#ff7f50");
+        gradientBottom.addColorStop(0.5, "#ff4500");
+        gradientBottom.addColorStop(1, "#ff7f50");
 
-                ctx.fillStyle = gradientBottom;
-                ctx.fillRect(pipe.x, pipe.bottom, pipeWidth, pipe.bottomHeight);
-            });
-        }
+        // Remplir les tuyaux avec les dégradés
+        ctx.fillStyle = gradientTop;
+        ctx.fillRect(pipe.x, pipe.top, pipeWidth, pipe.topHeight);
 
-        function updateBird(deltaTime) {
-            bird.velocity += bird.gravity * deltaTime;
-            bird.y += bird.velocity;
-
-            if (bird.y + bird.height / 2 > canvas.height || bird.y - bird.height / 2 < 0) {
-                endGame();
-            }
-        }
+        ctx.fillStyle = gradientBottom;
+        ctx.fillRect(pipe.x, pipe.bottom, pipeWidth, pipe.bottomHeight);
+    });
+}
 
 function updatePipes(deltaTime) {
     // Parcourir tous les tuyaux existants pour les mettre à jour
