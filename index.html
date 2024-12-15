@@ -175,40 +175,34 @@
         }
 
         // Draw pipes
-function drawPipes() {
-    pipes.forEach(pipe => {
-        // Ajouter un contour noir pour les tuyaux
-        ctx.lineWidth = 5; // Épaisseur du contour
-        ctx.strokeStyle = "#000000"; // Contour noir
+        function drawPipes() {
+            pipes.forEach(pipe => {
+                const gradientTop = ctx.createLinearGradient(pipe.x, 0, pipe.x + pipeWidth, 0);
+                gradientTop.addColorStop(0, "#F7DC6F");
+                gradientTop.addColorStop(0.5, "#F39C12");
+                gradientTop.addColorStop(1, "#F7DC6F");
 
-        // Dessiner le tuyau supérieur
-        ctx.beginPath();
-        ctx.rect(pipe.x, pipe.top, pipeWidth, pipe.topHeight);
-        ctx.stroke();
+                const gradientBottom = ctx.createLinearGradient(pipe.x, canvas.height, pipe.x + pipeWidth, canvas.height);
+                gradientBottom.addColorStop(0, "#F7DC6F");
+                gradientBottom.addColorStop(0.5, "#F39C12");
+                gradientBottom.addColorStop(1, "#F7DC6F");
 
-        // Dessiner le tuyau inférieur
-        ctx.beginPath();
-        ctx.rect(pipe.x, pipe.bottom, pipeWidth, pipe.bottomHeight);
-        ctx.stroke();
+                ctx.fillStyle = gradientTop;
+                ctx.fillRect(pipe.x, pipe.top, pipeWidth, pipe.topHeight);
 
-        // Dégradé de couleurs pour le tuyau supérieur
-        const gradientTop = ctx.createLinearGradient(pipe.x, pipe.top, pipe.x + pipeWidth, pipe.top);
-        gradientTop.addColorStop(0, "#ff7f50");  // Couleur orange clair
-        gradientTop.addColorStop(1, "#ff4500");  // Couleur rouge vif
+                ctx.fillStyle = gradientBottom;
+                ctx.fillRect(pipe.x, pipe.bottom, pipeWidth, pipe.bottomHeight);
+            });
+        }
 
-        // Dégradé de couleurs pour le tuyau inférieur
-        const gradientBottom = ctx.createLinearGradient(pipe.x, pipe.bottom, pipe.x + pipeWidth, pipe.bottom);
-        gradientBottom.addColorStop(0, "#ff7f50");  // Couleur orange clair
-        gradientBottom.addColorStop(1, "#ff4500");  // Couleur rouge vif
+        function updateBird(deltaTime) {
+            bird.velocity += bird.gravity * deltaTime;
+            bird.y += bird.velocity;
 
-        // Remplir les tuyaux avec les dégradés
-        ctx.fillStyle = gradientTop;
-        ctx.fillRect(pipe.x, pipe.top, pipeWidth, pipe.topHeight);
-
-        ctx.fillStyle = gradientBottom;
-        ctx.fillRect(pipe.x, pipe.bottom, pipeWidth, pipe.bottomHeight);
-    });
-}
+            if (bird.y + bird.height / 2 > canvas.height || bird.y - bird.height / 2 < 0) {
+                endGame();
+            }
+        }
 
 function updatePipes(deltaTime) {
     // Parcourir tous les tuyaux existants pour les mettre à jour
