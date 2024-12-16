@@ -8,7 +8,6 @@
         body {
             margin: 0;
             overflow: hidden;
-            background-color: #70c5ce;
         }
         canvas {
             display: block;
@@ -70,7 +69,13 @@
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
 
-        // Adjust canvas to full screen
+        // Déclarez l'image du fond et la position de défilement
+        const backgroundImg = new Image();
+        backgroundImg.src = 'background.png'; // L'image du fond
+
+        let backgroundX = 0; // Position initiale du fond
+
+        // Ajuster le canvas à l'écran
         function resizeCanvas() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
@@ -78,21 +83,6 @@
 
         resizeCanvas();
         window.addEventListener("resize", resizeCanvas);
-
-        // Fullscreen function
-        function goFullscreen() {
-            const body = document.body;
-
-            if (body.requestFullscreen) {
-                body.requestFullscreen();
-            } else if (body.webkitRequestFullscreen) { // Safari
-                body.webkitRequestFullscreen();
-            } else if (body.mozRequestFullScreen) { // Firefox
-                body.mozRequestFullScreen();
-            } else if (body.msRequestFullscreen) { // IE/Edge
-                body.msRequestFullscreen();
-            }
-        }
 
         // Audio control
         const backgroundMusicFB = document.getElementById("backgroundMusicFB");
@@ -112,26 +102,24 @@
         document.getElementById("bestScore").innerText = bestScore;
 
         // Bird properties (reduced size for distant view)
-       const bird = {
-    x: canvas.width * 0.1,
-    y: canvas.height * 0.3,
-    width: canvas.width * 0.1, 
-    height: canvas.width * 0.1, 
-    gravity: canvas.height * 0.025, // Adapté à la hauteur de l'écran
-    lift: -canvas.height * 0.0065,    // Adapté à la hauteur de l'écran
-    velocity: 0,
-    draw: function() {
-        const birdImg = new Image();
-        birdImg.src = "kiki.png";
-        ctx.drawImage(birdImg, this.x - this.width / 2, this.y - this.height / 2, this.width, this.height);
-    }
-};
-
+        const bird = {
+            x: canvas.width * 0.1,
+            y: canvas.height * 0.3,
+            width: canvas.width * 0.1, 
+            height: canvas.width * 0.1, 
+            gravity: canvas.height * 0.025, // Adapté à la hauteur de l'écran
+            lift: -canvas.height * 0.0065,    // Adapté à la hauteur de l'écran
+            velocity: 0,
+            draw: function() {
+                const birdImg = new Image();
+                birdImg.src = "kiki.png";
+                ctx.drawImage(birdImg, this.x - this.width / 2, this.y - this.height / 2, this.width, this.height);
+            }
+        };
 
         // Pipe properties (smaller pipes for distant view)
-        // Charger l'image de la texture des tuyaux
-const pipeTexture = new Image();
-pipeTexture.src = "brick_wall.png";
+        const pipeTexture = new Image();
+        pipeTexture.src = "brick_wall.png";
 
         const pipes = [];
         const pipeWidth = canvas.width * 0.1; // Reduced pipe width
@@ -143,11 +131,23 @@ pipeTexture.src = "brick_wall.png";
         // Cloud properties
         const clouds = [];
 
-        // Set up the background
+        // La fonction qui dessine l'arrière-plan (le fond qui défile)
         function drawBackground() {
-            ctx.fillStyle = "#70c5ce"; 
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            const bgSpeed = canvas.width * 0.3; // Vitesse de défilement du fond
 
+            // Dessiner l'image du fond de manière répétée
+            ctx.drawImage(backgroundImg, backgroundX, 0, canvas.width, canvas.height);
+            ctx.drawImage(backgroundImg, backgroundX + canvas.width, 0, canvas.width, canvas.height);
+
+            // Mettre à jour la position du fond
+            backgroundX -= bgSpeed * (performance.now() - lastTime) / 1000;
+
+            // Si le fond a totalement défilé, réinitialiser la position pour un effet continu
+            if (backgroundX <= -canvas.width) {
+                backgroundX = 0;
+            }
+
+            // Dessiner les nuages (si vous le souhaitez)
             ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
             clouds.forEach(cloud => {
                 ctx.beginPath();
@@ -180,26 +180,25 @@ pipeTexture.src = "brick_wall.png";
         }
 
         // Draw pipes
-       function drawPipes() {
-    pipes.forEach(pipe => {
-        // Créer un motif à partir de l'image
-        const pattern = ctx.createPattern(pipeTexture, "repeat");
+        function drawPipes() {
+            pipes.forEach(pipe => {
+                // Créer un motif à partir de l'image
+                const pattern = ctx.createPattern(pipeTexture, "repeat");
 
-        // Appliquer le motif pour le tuyau supérieur
-        ctx.fillStyle = pattern;
-        ctx.save();
-        ctx.translate(pipe.x, pipe.top); // Déplacer au point de départ du tuyau
-        ctx.fillRect(0, 0, pipeWidth, pipe.topHeight); // Dessiner le tuyau supérieur
-        ctx.restore();
+                // Appliquer le motif pour le tuyau supérieur
+                ctx.fillStyle = pattern;
+                ctx.save();
+                ctx.translate(pipe.x, pipe.top); // Déplacer au point de départ du tuyau
+                ctx.fillRect(0, 0, pipeWidth, pipe.topHeight); // Dessiner le tuyau supérieur
+                ctx.restore();
 
-        // Appliquer le motif pour le tuyau inférieur
-        ctx.save();
-        ctx.translate(pipe.x, pipe.bottom); // Déplacer au point de départ du tuyau
-        ctx.fillRect(0, 0, pipeWidth, pipe.bottomHeight); // Dessiner le tuyau inférieur
-        ctx.restore();
-    });
-}
-
+                // Appliquer le motif pour le tuyau inférieur
+                ctx.save();
+                ctx.translate(pipe.x, pipe.bottom); // Déplacer au point de départ du tuyau
+                ctx.fillRect(0, 0, pipeWidth, pipe.bottomHeight); // Dessiner le tuyau inférieur
+                ctx.restore();
+            });
+        }
 
         function updateBird(deltaTime) {
             bird.velocity += bird.gravity * deltaTime;
@@ -210,44 +209,42 @@ pipeTexture.src = "brick_wall.png";
             }
         }
 
-function updatePipes(deltaTime) {
-    // Parcourir tous les tuyaux existants pour les mettre à jour
-    for (let i = pipes.length - 1; i >= 0; i--) {
-        const pipe = pipes[i];
-        const pipeSpeed = canvas.width * 0.30; // Vitesse des tuyaux 
-        pipe.x -= pipeSpeed * deltaTime;
+        function updatePipes(deltaTime) {
+            for (let i = pipes.length - 1; i >= 0; i--) {
+                const pipe = pipes[i];
+                const pipeSpeed = canvas.width * 0.30; // Vitesse des tuyaux 
+                pipe.x -= pipeSpeed * deltaTime;
 
-        // Vérifier les collisions avec l'oiseau
-        if (
-            bird.x + bird.width / 2 > pipe.x &&
-            bird.x - bird.width / 2 < pipe.x + pipeWidth &&
-            (bird.y - bird.height / 2 < pipe.topHeight || bird.y + bird.height / 2 > pipe.bottom)
-        ) {
-            endGame();
-            return;
+                // Vérifier les collisions avec l'oiseau
+                if (
+                    bird.x + bird.width / 2 > pipe.x &&
+                    bird.x - bird.width / 2 < pipe.x + pipeWidth &&
+                    (bird.y - bird.height / 2 < pipe.topHeight || bird.y + bird.height / 2 > pipe.bottom)
+                ) {
+                    endGame();
+                    return;
+                }
+
+                // Supprimer les tuyaux qui sont hors de l'écran
+                if (pipe.x + pipeWidth < 0) {
+                    pipes.splice(i, 1);
+                    score++;
+                }
+            }
+
+            // Ajouter un nouveau tuyau si le dernier est assez éloigné
+            const pipeSpacing = canvas.width * 0.5; // Espacement horizontal entre les tuyaux (50% de la largeur de l'écran)
+            if (pipes.length === 0 || pipes[pipes.length - 1].x < canvas.width - pipeSpacing) {
+                const topHeight = Math.random() * (canvas.height - pipeGap - 100) + 50;
+                pipes.push({
+                    x: canvas.width,
+                    top: 0,
+                    topHeight: topHeight,
+                    bottom: topHeight + pipeGap,
+                    bottomHeight: canvas.height - topHeight - pipeGap,
+                });
+            }
         }
-
-        // Supprimer les tuyaux qui sont hors de l'écran
-        if (pipe.x + pipeWidth < 0) {
-            pipes.splice(i, 1);
-            score++;
-        }
-    }
-
-    // Ajouter un nouveau tuyau si le dernier est assez éloigné
-    const pipeSpacing = canvas.width * 0.5; // Espacement horizontal entre les tuyaux (50% de la largeur de l'écran)
-    if (pipes.length === 0 || pipes[pipes.length - 1].x < canvas.width - pipeSpacing) {
-        const topHeight = Math.random() * (canvas.height - pipeGap - 100) + 50; // Hauteur aléatoire pour le tuyau supérieur
-        pipes.push({
-            x: canvas.width,
-            top: 0,
-            topHeight: topHeight,
-            bottom: topHeight + pipeGap,
-            bottomHeight: canvas.height - topHeight - pipeGap,
-        });
-    }
-}
-
 
         function drawScore() {
             ctx.font = "24px Arial";
@@ -284,7 +281,7 @@ function updatePipes(deltaTime) {
 
             createClouds();
             updateClouds(deltaTime);
-            drawBackground();
+            drawBackground();  // Dessiner l'arrière-plan qui défile
             bird.draw();
             drawPipes();
             drawScore();
@@ -307,8 +304,8 @@ function updatePipes(deltaTime) {
             gameOver = false;
 
             // Redémarrer la musique
-            backgroundMusicFB.currentTime = 0; // Remet la musique à 0 pour un redémarrage propre
-            backgroundMusicFB.play(); // Joue FB.mp3
+            backgroundMusicFB.currentTime = 0;
+            backgroundMusicFB.play();
 
             lastTime = performance.now();
             requestAnimationFrame(gameLoop);
@@ -320,7 +317,17 @@ function updatePipes(deltaTime) {
         }
 
         document.addEventListener("touchstart", () => {
-            if (!gameOver) bird.velocity = bird.lift;
+            if (!gameOver) {
+                bird.velocity = bird.lift;
+            }
+        });
+
+        document.addEventListener("keydown", (event) => {
+            if (event.key === " ") {
+                if (!gameOver) {
+                    bird.velocity = bird.lift;
+                }
+            }
         });
     </script>
 </body>
