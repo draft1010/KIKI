@@ -128,6 +128,10 @@
         };
 
         // Pipe properties (smaller pipes for distant view)
+        // Charger l'image de la texture des tuyaux
+const pipeTexture = new Image();
+pipeTexture.src = "brick_wall.png";
+
         const pipes = [];
         const pipeWidth = canvas.width * 0.1; // Reduced pipe width
         const pipeGap = canvas.height * 0.25; // Adjust gap for better view
@@ -175,25 +179,26 @@
         }
 
         // Draw pipes
-        function drawPipes() {
-            pipes.forEach(pipe => {
-                const gradientTop = ctx.createLinearGradient(pipe.x, 0, pipe.x + pipeWidth, 0);
-                gradientTop.addColorStop(0, "#F7DC6F");
-                gradientTop.addColorStop(0.5, "#F39C12");
-                gradientTop.addColorStop(1, "#F7DC6F");
+       function drawPipes() {
+    pipes.forEach(pipe => {
+        // Créer un motif à partir de l'image
+        const pattern = ctx.createPattern(pipeTexture, "repeat");
 
-                const gradientBottom = ctx.createLinearGradient(pipe.x, canvas.height, pipe.x + pipeWidth, canvas.height);
-                gradientBottom.addColorStop(0, "#F7DC6F");
-                gradientBottom.addColorStop(0.5, "#F39C12");
-                gradientBottom.addColorStop(1, "#F7DC6F");
+        // Appliquer le motif pour le tuyau supérieur
+        ctx.fillStyle = pattern;
+        ctx.save();
+        ctx.translate(pipe.x, pipe.top); // Déplacer au point de départ du tuyau
+        ctx.fillRect(0, 0, pipeWidth, pipe.topHeight); // Dessiner le tuyau supérieur
+        ctx.restore();
 
-                ctx.fillStyle = gradientTop;
-                ctx.fillRect(pipe.x, pipe.top, pipeWidth, pipe.topHeight);
+        // Appliquer le motif pour le tuyau inférieur
+        ctx.save();
+        ctx.translate(pipe.x, pipe.bottom); // Déplacer au point de départ du tuyau
+        ctx.fillRect(0, 0, pipeWidth, pipe.bottomHeight); // Dessiner le tuyau inférieur
+        ctx.restore();
+    });
+}
 
-                ctx.fillStyle = gradientBottom;
-                ctx.fillRect(pipe.x, pipe.bottom, pipeWidth, pipe.bottomHeight);
-            });
-        }
 
         function updateBird(deltaTime) {
             bird.velocity += bird.gravity * deltaTime;
