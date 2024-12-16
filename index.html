@@ -239,7 +239,7 @@ function updatePipes(deltaTime) {
     }
 
     // Ajouter un nouveau tuyau si le dernier est assez éloigné
-    const pipeSpacing = canvas.width * 0.5; // Espacement horizontal entre les tuyaux (50% de la largeur de l'écran)
+    const pipeSpacing = canvas.width * 0.55; // Espacement horizontal entre les tuyaux (50% de la largeur de l'écran)
     if (pipes.length === 0 || pipes[pipes.length - 1].x < canvas.width - pipeSpacing) {
         const topHeight = Math.random() * (canvas.height - pipeGap - 100) + 50; // Hauteur aléatoire pour le tuyau supérieur
         pipes.push({
