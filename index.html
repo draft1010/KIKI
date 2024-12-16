@@ -176,15 +176,16 @@
 
         // Draw pipes
         function drawPipes() {
-   const brickTexture = new Image();
-brickTexture.src = "brick_wall.png"; // Chemin de votre texture
-
+const brickTexture = new Image();
+brickTexture.src = "brick_wall.png"; // Remplacez par le bon chemin vers votre image
 let brickPattern = null;
 
-// Assurez-vous que l'image est chargée avant de la convertir en pattern
+// Une fois l'image chargée, on crée le pattern
 brickTexture.onload = () => {
     brickPattern = ctx.createPattern(brickTexture, "repeat");
+    console.log("Texture chargée et prête !");
 };
+
 
 function drawPipes() {
     if (!brickPattern) return; // Attendez que le pattern soit prêt
@@ -298,23 +299,29 @@ function updatePipes(deltaTime) {
             requestAnimationFrame(gameLoop);
         }
 
-        function startGame() {
-            goFullscreen();
-            document.getElementById("menu").style.display = "none";
-            pipes.length = 0;
-            score = 0;
-            frameCount = 0;
-            bird.y = 150;
-            bird.velocity = 0;
-            gameOver = false;
+function startGame() {
+    if (!brickPattern) {
+        console.log("La texture n'est pas encore chargée !");
+        return; // Empêche de démarrer tant que l'image n'est pas prête
+    }
+    
+    goFullscreen();
+    document.getElementById("menu").style.display = "none";
+    pipes.length = 0;
+    score = 0;
+    frameCount = 0;
+    bird.y = 150;
+    bird.velocity = 0;
+    gameOver = false;
 
-            // Redémarrer la musique
-            backgroundMusicFB.currentTime = 0; // Remet la musique à 0 pour un redémarrage propre
-            backgroundMusicFB.play(); // Joue FB.mp3
+    // Redémarrer la musique
+    backgroundMusicFB.currentTime = 0;
+    backgroundMusicFB.play();
 
-            lastTime = performance.now();
-            requestAnimationFrame(gameLoop);
-        }
+    lastTime = performance.now();
+    requestAnimationFrame(gameLoop);
+}
+
 
         function restartGame() {
             document.getElementById("game-over").style.display = "none";
