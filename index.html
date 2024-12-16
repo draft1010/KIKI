@@ -214,7 +214,7 @@ function updatePipes(deltaTime) {
     // Parcourir tous les tuyaux existants pour les mettre à jour
     for (let i = pipes.length - 1; i >= 0; i--) {
         const pipe = pipes[i];
-        const pipeSpeed = canvas.width * 0.25; // Vitesse des tuyaux (25% de la largeur de l'écran par seconde)
+        const pipeSpeed = canvas.width * 0.28; // Vitesse des tuyaux 
         pipe.x -= pipeSpeed * deltaTime;
 
         // Vérifier les collisions avec l'oiseau
