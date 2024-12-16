@@ -70,6 +70,10 @@
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
 
+        // Charger l'image de fond
+const backgroundImage = new Image();
+backgroundImage.src = "background.png";
+
         // Adjust canvas to full screen
         function resizeCanvas() {
             canvas.width = window.innerWidth;
@@ -145,8 +149,8 @@ pipeTexture.src = "brick_wall.png";
 
         // Set up the background
         function drawBackground() {
-            ctx.fillStyle = "#70c5ce"; 
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+// Dessiner l'image de fond
+    ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
 
             ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
             clouds.forEach(cloud => {
