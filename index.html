@@ -112,20 +112,21 @@
         document.getElementById("bestScore").innerText = bestScore;
 
         // Bird properties (reduced size for distant view)
-        const bird = {
-            x: canvas.width * 0.1,
-            y: canvas.height * 0.3,
-            width: canvas.width * 0.1, // Reduced size of the bird
-            height: canvas.width * 0.1, // Reduced size of the bird
-            gravity: 15,
-            lift: -4,
-            velocity: 0,
-            draw: function() {
-                const birdImg = new Image();
-                birdImg.src = "kiki.png";
-                ctx.drawImage(birdImg, this.x - this.width / 2, this.y - this.height / 2, this.width, this.height);
-            }
-        };
+       const bird = {
+    x: canvas.width * 0.1,
+    y: canvas.height * 0.3,
+    width: canvas.width * 0.1, 
+    height: canvas.width * 0.1, 
+    gravity: canvas.height * 0.002, // Adapté à la hauteur de l'écran
+    lift: -canvas.height * 0.05,    // Adapté à la hauteur de l'écran
+    velocity: 0,
+    draw: function() {
+        const birdImg = new Image();
+        birdImg.src = "kiki.png";
+        ctx.drawImage(birdImg, this.x - this.width / 2, this.y - this.height / 2, this.width, this.height);
+    }
+};
+
 
         // Pipe properties (smaller pipes for distant view)
         // Charger l'image de la texture des tuyaux
