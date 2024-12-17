@@ -148,29 +148,65 @@ pipeTexture.src = "brick_wall.png";
         const clouds = [];
 
         // Set up the background
-        function drawBackground() {
-// Dessiner l'image de fond
+ function drawBackground() {
+    // Dessiner l'image de fond
     ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
 
-            ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
-            clouds.forEach(cloud => {
-                ctx.beginPath();
-                ctx.arc(cloud.x, cloud.y, cloud.width / 2, Math.PI, 2 * Math.PI);
-                ctx.fill();
-            });
-        }
+    drawClouds(); // Appelle la nouvelle fonction pour dessiner les nuages réalistes
+}
+
+function drawClouds() {
+    clouds.forEach(cloud => {
+        drawComplexCloud(cloud.x, cloud.y, cloud.circles);
+    });
+}
+
+function drawComplexCloud(x, y, circles) {
+    ctx.fillStyle = "rgba(255, 255, 255, 0.9)"; // Blanc opaque
+    circles.forEach(circle => {
+        ctx.beginPath();
+        ctx.arc(x + circle.offsetX, y + circle.offsetY, circle.radius, 0, 2 * Math.PI);
+        ctx.fill();
+    });
+
+    // Ajoute une légère ombre pour un effet réaliste
+    ctx.fillStyle = "rgba(0, 0, 0, 0.1)";
+    circles.forEach(circle => {
+        ctx.beginPath();
+        ctx.arc(x + circle.offsetX + 5, y + circle.offsetY + 5, circle.radius, 0, 2 * Math.PI);
+        ctx.fill();
+    });
+}
+
 
         // Create clouds and update their positions
-        function createClouds() {
-            if (Math.random() < 0.02) {
-                clouds.push({
-                    x: canvas.width,
-                    y: Math.random() * (canvas.height / 3),
-                    width: 100 + Math.random() * 200,
-                    height: 40 + Math.random() * 60,
-                    speed: Math.random() * 0.5 + 0.3
-                });
-            }
+       function createClouds() {
+    if (Math.random() < 0.02) {
+        clouds.push({
+            x: canvas.width,
+            y: Math.random() * (canvas.height / 3),
+            width: 100 + Math.random() * 200,
+            height: 40 + Math.random() * 60,
+            speed: Math.random() * 0.5 + 0.3,
+            circles: generateCloudCircles() // Ajout des cercles pour un nuage réaliste
+        });
+    }
+}
+
+// Génère des données pour des cercles formant un nuage
+function generateCloudCircles() {
+    const circles = [];
+    const numCircles = Math.floor(Math.random() * 5) + 3; // Entre 3 et 7 cercles
+    for (let i = 0; i < numCircles; i++) {
+        circles.push({
+            offsetX: (Math.random() - 0.5) * 200, // Décalage horizontal
+            offsetY: (Math.random() - 0.5) * 50,  // Décalage vertical
+            radius: 30 + Math.random() * 50      // Taille du cercle
+        });
+    }
+    return circles;
+}
+
         }
 
         function updateClouds(deltaTime) {
