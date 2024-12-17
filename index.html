@@ -168,8 +168,8 @@ function drawBackground(deltaTime) {
     }
 
     // Dessiner les deux images de fond
-    ctx.drawImage(backgroundImage, backgroundX1, 0, canvas.width, canvas.height);
-    ctx.drawImage(backgroundImage, backgroundX2, 0, canvas.width, canvas.height);
+ctx.drawImage(backgroundImage, Math.round(backgroundX1), 0, canvas.width, canvas.height);
+ctx.drawImage(backgroundImage, Math.round(backgroundX2), 0, canvas.width, canvas.height);
 }
 
 
