@@ -79,28 +79,27 @@
         resizeCanvas();
         window.addEventListener("resize", resizeCanvas);
 
-        // Charger l'image de fond
+        // Charger les images
         const backgroundImage = new Image();
         backgroundImage.src = "background.png";
 
-        let bgX1 = 0; // Position de la première image
-        let bgX2 = canvas.width; // Position de la deuxième image
-        const bgSpeed = 100; // Vitesse de défilement du fond (px/seconde)
-
-        // Charger l'image de l'oiseau
         const birdImg = new Image();
         birdImg.src = "kiki.png";
 
-        // Charger la texture des tuyaux
         const pipeTexture = new Image();
         pipeTexture.src = "brick_wall.png";
 
-        // Bird properties
+        // Variables pour le fond qui défile
+        let bgX1 = 0;
+        let bgX2 = canvas.width;
+        const bgSpeed = 100;
+
+        // Propriétés de l'oiseau
         const bird = {
             x: canvas.width * 0.1,
             y: canvas.height * 0.3,
-            width: canvas.width * 0.1, 
-            height: canvas.width * 0.1, 
+            width: canvas.width * 0.1,
+            height: canvas.width * 0.1,
             gravity: canvas.height * 0.025,
             lift: -canvas.height * 0.0068,
             velocity: 0,
@@ -109,12 +108,11 @@
             }
         };
 
-        // Pipes
+        // Tuyaux
         const pipes = [];
         const pipeWidth = canvas.width * 0.1;
         const pipeGap = canvas.height * 0.25;
 
-        // Scores et état du jeu
         let score = 0;
         let bestScore = localStorage.getItem('bestScore') ? parseInt(localStorage.getItem('bestScore')) : 0;
         let gameOver = false;
@@ -122,15 +120,13 @@
         document.getElementById("bestScore").innerText = bestScore;
 
         function drawBackground(deltaTime) {
-            // Déplacer les positions des deux images
+            // Défilement infini du fond
             bgX1 -= bgSpeed * deltaTime;
             bgX2 -= bgSpeed * deltaTime;
 
-            // Repositionner les images pour un défilement infini
             if (bgX1 + canvas.width <= 0) bgX1 = bgX2 + canvas.width;
             if (bgX2 + canvas.width <= 0) bgX2 = bgX1 + canvas.width;
 
-            // Dessiner les deux images
             ctx.drawImage(backgroundImage, bgX1, 0, canvas.width, canvas.height);
             ctx.drawImage(backgroundImage, bgX2, 0, canvas.width, canvas.height);
         }
@@ -145,14 +141,23 @@
 
         function updatePipes(deltaTime) {
             for (let i = pipes.length - 1; i >= 0; i--) {
-                pipes[i].x -= bgSpeed * deltaTime * 2; // Vitesse des tuyaux
+                pipes[i].x -= bgSpeed * deltaTime * 2;
+
+                // Collision avec l'oiseau
+                if (
+                    bird.x + bird.width / 2 > pipes[i].x &&
+                    bird.x - bird.width / 2 < pipes[i].x + pipeWidth &&
+                    (bird.y - bird.height / 2 < pipes[i].topHeight || bird.y + bird.height / 2 > pipes[i].bottom)
+                ) {
+                    endGame();
+                }
+
                 if (pipes[i].x + pipeWidth < 0) {
                     pipes.splice(i, 1);
                     score++;
                 }
             }
 
-            // Ajouter de nouveaux tuyaux
             if (pipes.length === 0 || pipes[pipes.length - 1].x < canvas.width - canvas.width * 0.55) {
                 const topHeight = Math.random() * (canvas.height - pipeGap - 100) + 50;
                 pipes.push({
@@ -168,10 +173,15 @@
             bird.velocity += bird.gravity * deltaTime;
             bird.y += bird.velocity;
 
-            // Collision avec le sol ou le plafond
             if (bird.y + bird.height / 2 > canvas.height || bird.y - bird.height / 2 < 0) {
                 endGame();
             }
+        }
+
+        function drawScore() {
+            ctx.font = "24px Arial";
+            ctx.fillStyle = "#000";
+            ctx.fillText(`Score: ${score}`, 10, 30);
         }
 
         function endGame() {
@@ -182,12 +192,6 @@
             }
             document.getElementById("finalScore").innerText = `Score: ${score}`;
             document.getElementById("game-over").style.display = "flex";
-        }
-
-        function drawScore() {
-            ctx.font = "24px Arial";
-            ctx.fillStyle = "#000";
-            ctx.fillText(`Score: ${score}`, 10, 30);
         }
 
         let lastTime = 0;
